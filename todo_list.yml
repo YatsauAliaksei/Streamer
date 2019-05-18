@@ -1,0 +1,15 @@
+Performance:
+  Low latency:
+  Slow clients processing:
+  ~10000 users support:
+
+Reliability:
+  Connection issues detection:
+  Auto re-connect:
+  Runtime issues handling:
+    Runtime Data issues detection + recovery too current state:
+
+Security:
+  3rd parties authentification:
+  Per subscription authorization:
+  TLS support:

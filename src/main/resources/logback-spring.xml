@@ -26,6 +26,7 @@
         <appender-ref ref="ASYNC"/>
     </root>
 -->
+    <logger name="by.mrj" level="INFO"/>
 
     <logger name="javax.activation" level="WARN"/>
     <logger name="javax.mail" level="WARN"/>

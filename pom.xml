@@ -30,8 +30,8 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <argLine>-Djava.security.egd=file:/dev/./urandom -Xmx256m</argLine>
-        <m2e.apt.activation>jdt_apt</m2e.apt.activation>
-        <run.addResources>false</run.addResources>
+        <!--<m2e.apt.activation>jdt_apt</m2e.apt.activation>-->
+        <!--<run.addResources>false</run.addResources>-->
         <!-- These remain empty unless the corresponding profile is active -->
         <profile.swagger/>
         <profile.tls/>
@@ -54,16 +54,16 @@
         <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
         <maven-surefire-plugin.version>3.0.0-M3</maven-surefire-plugin.version>
         <maven-war-plugin.version>3.2.2</maven-war-plugin.version>
-        <frontend-maven-plugin.version>1.7.6</frontend-maven-plugin.version>
+        <!--<frontend-maven-plugin.version>1.7.6</frontend-maven-plugin.version>-->
         <git-commit-id-plugin.version>2.2.6</git-commit-id-plugin.version>
         <jacoco-maven-plugin.version>0.8.3</jacoco-maven-plugin.version>
         <jib-maven-plugin.version>0.9.11</jib-maven-plugin.version>
         <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
         <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
-        <sonar-maven-plugin.version>3.6.0.1398</sonar-maven-plugin.version>
-        <jacoco.reportFolder>${project.build.directory}/jacoco</jacoco.reportFolder>
-        <jacoco.utReportFile>${jacoco.reportFolder}/test.exec</jacoco.utReportFile>
-        <jacoco.itReportFile>${jacoco.reportFolder}/integrationTest.exec</jacoco.itReportFile>
+        <!--<sonar-maven-plugin.version>3.6.0.1398</sonar-maven-plugin.version>-->
+        <!--<jacoco.reportFolder>${project.build.directory}/jacoco</jacoco.reportFolder>-->
+        <!--<jacoco.utReportFile>${jacoco.reportFolder}/test.exec</jacoco.utReportFile>-->
+        <!--<jacoco.itReportFile>${jacoco.reportFolder}/integrationTest.exec</jacoco.itReportFile>-->
         <junit.utReportFolder>${project.testresult.directory}/test</junit.utReportFolder>
         <junit.itReportFolder>${project.testresult.directory}/integrationTest</junit.itReportFolder>
         <!-- jhipster-needle-maven-property -->
@@ -268,11 +268,39 @@
             <artifactId>spring-security-messaging</artifactId>
         </dependency>
         <!-- jhipster-needle-maven-add-dependency -->
+
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.36.Final</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.8</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
         <dependency>
             <groupId>com.google.flatbuffers</groupId>
             <artifactId>flatbuffers-java</artifactId>
             <version>1.11.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>1.21</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+            <version>1.21</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -321,14 +349,14 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
             </plugin>
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.sonarsource.scanner.maven</groupId>
-                <artifactId>sonar-maven-plugin</artifactId>
-            </plugin>
+            <!--<plugin>-->
+                <!--<groupId>org.jacoco</groupId>-->
+                <!--<artifactId>jacoco-maven-plugin</artifactId>-->
+            <!--</plugin>-->
+            <!--<plugin>-->
+                <!--<groupId>org.sonarsource.scanner.maven</groupId>-->
+                <!--<artifactId>sonar-maven-plugin</artifactId>-->
+            <!--</plugin>-->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -376,7 +404,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven-compiler-plugin.version}</version>
                 </plugin>
-                <plugin>
+<!--                <plugin>
                     <groupId>pl.project13.maven</groupId>
                     <artifactId>git-commit-id-plugin</artifactId>
                     <version>${git-commit-id-plugin.version}</version>
@@ -396,8 +424,8 @@
                             <includeOnlyProperty>^git.branch$</includeOnlyProperty>
                         </includeOnlyProperties>
                     </configuration>
-                </plugin>
-                <plugin>
+                </plugin>-->
+<!--                <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
                     <version>${jacoco-maven-plugin.version}</version>
@@ -408,11 +436,11 @@
                                 <goal>prepare-agent</goal>
                             </goals>
                             <configuration>
-                                <!-- Sets the path to the file which contains the execution data. -->
+                                &lt;!&ndash; Sets the path to the file which contains the execution data. &ndash;&gt;
                                 <destFile>${jacoco.utReportFile}</destFile>
                             </configuration>
                         </execution>
-                        <!-- Ensures that the code coverage report for unit tests is created after unit tests have been run -->
+                        &lt;!&ndash; Ensures that the code coverage report for unit tests is created after unit tests have been run &ndash;&gt;
                         <execution>
                             <id>post-unit-test</id>
                             <phase>test</phase>
@@ -430,11 +458,11 @@
                                 <goal>prepare-agent-integration</goal>
                             </goals>
                             <configuration>
-                                <!-- Sets the path to the file which contains the execution data. -->
+                                &lt;!&ndash; Sets the path to the file which contains the execution data. &ndash;&gt;
                                 <destFile>${jacoco.itReportFile}</destFile>
                             </configuration>
                         </execution>
-                        <!-- Ensures that the code coverage report for integration tests is created after integration tests have been run -->
+                        &lt;!&ndash; Ensures that the code coverage report for integration tests is created after integration tests have been run &ndash;&gt;
                         <execution>
                             <id>post-integration-tests</id>
                             <phase>post-integration-test</phase>
@@ -447,7 +475,7 @@
                             </configuration>
                         </execution>
                     </executions>
-                </plugin>
+                </plugin>-->
                 <plugin>
                     <artifactId>maven-clean-plugin</artifactId>
                     <version>${maven-clean-plugin.version}</version>
@@ -583,11 +611,11 @@
                         </execution>
                     </executions>
                 </plugin>
-                <plugin>
+<!--                <plugin>
                     <groupId>org.sonarsource.scanner.maven</groupId>
                     <artifactId>sonar-maven-plugin</artifactId>
                     <version>${sonar-maven-plugin.version}</version>
-                </plugin>
+                </plugin>-->
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
@@ -597,12 +625,12 @@
         </pluginManagement>
     </build>
     <profiles>
-        <profile>
-            <id>swagger</id>
-            <properties>
-                <profile.swagger>,swagger</profile.swagger>
-            </properties>
-        </profile>
+        <!--<profile>-->
+            <!--<id>swagger</id>-->
+            <!--<properties>-->
+                <!--<profile.swagger>,swagger</profile.swagger>-->
+            <!--</properties>-->
+        <!--</profile>-->
         <profile>
             <id>tls</id>
             <properties>

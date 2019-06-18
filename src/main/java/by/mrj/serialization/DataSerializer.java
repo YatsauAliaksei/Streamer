@@ -4,5 +4,5 @@ import java.io.Serializable;
 
 @FunctionalInterface
 public interface DataSerializer {
-    byte[] serialize(Serializable obj);
+    Object serialize(Serializable obj);
 }

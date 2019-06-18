@@ -1,5 +1,7 @@
-package by.mrj.performance.socket;
+package by.mrj.transport.socket.server;
 
+import by.mrj.transport.socket.client.BasicNetSocket;
+import by.mrj.transport.socket.client.NetSocket;
 import lombok.SneakyThrows;
 
 import java.net.ServerSocket;
@@ -11,7 +13,7 @@ public class BasicNetServerSocket implements NetServerSocket {
 
     @SneakyThrows
     public BasicNetServerSocket(int socket) {
-            serverSocket = new ServerSocket(socket);
+            serverSocket = new ServerSocket(socket, 5_000);
     }
 
     @Override

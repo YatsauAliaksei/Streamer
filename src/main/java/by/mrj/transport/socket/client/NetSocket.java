@@ -1,4 +1,4 @@
-package by.mrj.performance.socket;
+package by.mrj.transport.socket.client;
 
 import java.io.InputStream;
 import java.io.OutputStream;

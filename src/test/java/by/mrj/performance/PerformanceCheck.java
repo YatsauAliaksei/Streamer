@@ -2,8 +2,7 @@ package by.mrj.performance;
 
 import by.mrj.domain.BaseObject;
 import by.mrj.domain.Message;
-import by.mrj.performance.socket.Client;
-import by.mrj.performance.socket.DataStreamer;
+import by.mrj.domain.client.Client;
 import by.mrj.serialization.DataDeserializer;
 import by.mrj.serialization.java.JavaDataDeserialization;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +53,7 @@ public class PerformanceCheck {
         AtomicInteger counter = new AtomicInteger();
         clients.parallelStream().forEach(client -> {
             InputStream is = client.getInputStream();
-            int k = DataStreamer.SIZE;
+            int k = 10;// StreamerController.SIZE;
             while (k > 0) {
                 try {
                     if (is.available() == 0) {
@@ -64,7 +63,7 @@ public class PerformanceCheck {
 //                        log.debug("Receiving data...");
                         k--;
 
-                        Message<BaseObject> message = deserializer.deserialize(is, BaseObject.class);
+                        Message<BaseObject> message = deserializer.deserializeMessage(is, BaseObject.class);
                         counter.incrementAndGet();
 //                        log.debug("Message [{}]", message);
                     }

@@ -49,8 +49,8 @@ public abstract class NetUtils {
         }
     }
 
-//    public static Message<?> deserialize(byte[] bytes) {
-//        return deserialize(new ByteArrayInputStream(bytes));
+//    public static Message<?> deserializeMessage(byte[] bytes) {
+//        return deserializeMessage(new ByteArrayInputStream(bytes));
 //    }
 
     public static void closeQuietly(Closeable closeable) {

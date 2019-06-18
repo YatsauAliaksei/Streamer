@@ -1,4 +1,4 @@
-package by.mrj.performance.socket;
+package by.mrj.transport.socket.client;
 
 import lombok.SneakyThrows;
 

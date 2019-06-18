@@ -1,17 +1,36 @@
 package by.mrj.service;
 
+import by.mrj.domain.BaseObject;
+import by.mrj.domain.Message;
+import by.mrj.domain.client.Client;
+import by.mrj.serialization.DataSerializer;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.function.Supplier;
+import java.util.Collections;
+import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor(staticName = "create", access = AccessLevel.PUBLIC)
-public class DataProducer<T> implements Supplier<T> {
+public class DataProducer {
 
-    private final Supplier<T> supplier;
+    public static int SIZE = 50; // TODO: remove
 
-    @Override
-    public T get() {
-        return supplier.get();
+    private final DataSerializer serializer;
+
+    public List<byte[]> findData(Client client) {
+
+//        return testData();
+        return Collections.emptyList();
+    }
+
+    private static Message<BaseObject> createMessage(int _1st) {
+        return Message.<BaseObject>builder()
+                .payload(BaseObject.builder()
+//                        ._1st(_1st)
+//                        .text("Hello")
+                        .build())
+                .build();
     }
 }

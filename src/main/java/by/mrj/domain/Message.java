@@ -10,24 +10,16 @@ import java.io.Serializable;
 @Setter
 @ToString
 @EqualsAndHashCode
-//@NoArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class Message<T extends Serializable> implements Serializable {
+public class Message<T> implements Serializable {
 
     private static final long serialVersionUID = 1L;
-//    @NonNull
-    private
     String checksum;
-//    @NonNull
-    private
     String address;
-//    @NonNull
-    private
     T payload;
-//    @NonNull
-    private
     String publicKey;
     @Setter
-    private
     String signature;
 }

@@ -4,7 +4,9 @@
 <configuration scan="true">
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
 
-    <logger name="by.mrj" level="INFO"/>
+    <logger name="by.mrj" level="INFO">
+        <appender-ref ref="ASYNC" />
+    </logger>
 
     <logger name="io.github.jhipster" level="WARN"/>
 
@@ -31,8 +33,12 @@
     <logger name="sun.rmi" level="WARN"/>
     <logger name="sun.rmi.transport" level="WARN"/>
 
-    <root level="WARN">
+    <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="CONSOLE"/>
+    </appender>
+
+    <root level="WARN">
+        <appender-ref ref="ASYNC" />
     </root>
 
 </configuration>

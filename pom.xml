@@ -6,7 +6,12 @@
     <groupId>by.mrj</groupId>
     <artifactId>streamer</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <modules>
+        <module>StreamerClient</module>
+        <module>StreamerServer</module>
+        <module>StreamerCommon</module>
+    </modules>
+    <packaging>pom</packaging>
     <name>Streamer</name>
 
     <repositories>

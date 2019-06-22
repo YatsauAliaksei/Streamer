@@ -152,7 +152,7 @@ For more information, refer to the [Code quality page][].
 
 ## Using Docker to simplify development (optional)
 
-You can use Docker to improve your JHipster development experience. A number of docker-compose configuration are available in the [src/main/docker](src/main/docker) folder to launch required third party services.
+You can use Docker to improve your JHipster development experience. A number of docker-compose configuration are available in the [src/main/docker](docker) folder to launch required third party services.
 
 You can also fully dockerize your application and all the services that it depends on.
 To achieve this, first build a docker image of your app by running:

@@ -1,4 +1,4 @@
-package by.mrj.transport.websocket.client;
+package by.mrj.transport.http.longpolling;
 
 import by.mrj.domain.Command;
 import by.mrj.domain.Message;
@@ -10,38 +10,33 @@ import org.openjdk.jmh.annotations.*;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 @State(Scope.Benchmark)
 @Slf4j
-public class WebSocketClientTest {
+public class LongPollingHttpClientTest {
 
-    private static WebSocketClient webSocketClient = new WebSocketClient();
+    private static LongPollingHttpClient longPollingHttpClient = new LongPollingHttpClient();
+    private AtomicInteger iterator = new AtomicInteger();
 
     @BeforeAll
-    //    @Benchmark
-//    @Fork(jvmArgsAppend = "-Xmx2g")
-//    @BenchmarkMode(Mode.SingleShotTime)
-//    @Threads(2)
     @Setup(Level.Invocation)
     public static void before() throws InterruptedException {
 
-        log.debug("Creating channel...");
-        webSocketClient.createChannel();
-        Thread.sleep(500L);
+//        log.info("Creating channel...");
+        longPollingHttpClient.createChannel();
 
-        webSocketClient.getHandshakeFuture().sync();
+//        log.info("Channel created");
 
-        log.debug("Channel created");
-
+        Thread.sleep(500L); // could be done using Future/Listener way
     }
-
-    private AtomicInteger iterator = new AtomicInteger();
 
     @Test
     @Benchmark
     public void send() throws InterruptedException {
         log.debug("Sending benchmark message...");
 
-        webSocketClient.send(
+        longPollingHttpClient.send(
                 Message.<String>builder()
                         .payload("myLoginName-" + iterator.incrementAndGet())
                         .build(),
@@ -50,7 +45,6 @@ public class WebSocketClientTest {
                         .command(Command.CONNECT)
                         .build());
 
-        webSocketClient.closeFutureSync();
+        longPollingHttpClient.closeFutureSync();
     }
-
 }

@@ -22,8 +22,8 @@ logging:
 spring:
   profiles:
     active: dev
-    include:
-      - swagger
+#    include:
+#      - swagger
       # Uncomment to activate TLS for the dev profile
       #- tls
   devtools:
@@ -31,14 +31,14 @@ spring:
       enabled: true
     livereload:
       enabled: false # we use Webpack dev server + BrowserSync for livereload
-  jackson:
-    serialization:
-      indent-output: true
-  mail:
-    host: localhost
-    port: 25
-    username:
-    password:
+#  jackson:
+#    serialization:
+#      indent-output: true
+#  mail:
+#    host: localhost
+#    port: 25
+#    username:
+#    password:
   messages:
     cache-duration: PT1S # 1 second, see the ISO 8601 standard
   thymeleaf:
@@ -102,3 +102,5 @@ jhipster:
 # ===================================================================
 
 # application:
+#streamer:
+#  port: 8080 # Port to listen

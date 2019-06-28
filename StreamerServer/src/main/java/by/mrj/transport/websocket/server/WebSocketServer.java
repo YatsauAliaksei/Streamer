@@ -1,38 +1,31 @@
 package by.mrj.transport.websocket.server;
 
-import by.mrj.controller.CommandListener;
 import by.mrj.transport.PortListener;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.util.SelfSignedCertificate;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
+
 @Slf4j
+@RequiredArgsConstructor
 public class WebSocketServer implements PortListener {
 
-    // TODO: make configurable
-    static final boolean SSL = System.getProperty("ssl") != null;
-    static final int PORT = Integer.parseInt(System.getProperty("port", SSL ? "8443" : "8080"));
+    private final ChannelHandler webSocketServerInitializer;
+    @Setter
+    private Integer port;
 
     @Override
     @SneakyThrows
-    public void listen(CommandListener commandListener) {
-        // Configure SSL.
-        final SslContext sslCtx;
-        if (SSL) {
-            SelfSignedCertificate ssc = new SelfSignedCertificate();
-            sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
-        } else {
-            sslCtx = null;
-        }
+    public void listen() {
 
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -41,12 +34,13 @@ public class WebSocketServer implements PortListener {
             b.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .handler(new LoggingHandler(LogLevel.DEBUG))
-                    .childHandler(new WebSocketServerInitializer(sslCtx, commandListener));
+                    .childHandler(webSocketServerInitializer);
 
-            Channel ch = b.bind(PORT).sync().channel();
+            Channel ch = b.bind(port).sync().channel();
 
-            log.info("Open your web browser and navigate to " +
-                    (SSL ? "https" : "http") + "://127.0.0.1:" + PORT + '/');
+            log.info("Listening on port {}", port);
+//            log.info("Open your web browser and navigate to " +
+//                    (SSL ? "https" : "http") + "://127.0.0.1:" + PORT + '/');
 
             ch.closeFuture().sync();
         } finally {

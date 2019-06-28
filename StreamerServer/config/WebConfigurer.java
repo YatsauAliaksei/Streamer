@@ -100,7 +100,7 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
             /* try without decoding if this ever happens */
             fullExecutablePath = this.getClass().getResource("").getPath();
         }
-        String rootPath = Paths.get(".").toUri().normalize().getPath();
+        String rootPath = Paths.get("").toUri().normalize().getPath();
         String extractedPath = fullExecutablePath.replace(rootPath, "");
         int extractionEndIndex = extractedPath.indexOf("target/");
         if (extractionEndIndex <= 0) {

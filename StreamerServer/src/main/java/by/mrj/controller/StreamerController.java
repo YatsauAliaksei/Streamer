@@ -17,32 +17,10 @@ import java.util.List;
 public class StreamerController implements CommandListener {
 
     private final DataDeserializer deserializer;
-//    private final NetServerSocket netServerSocket;
     private final ClientRegister clientRegister;
 
     @Override
     public void processRequest(Object msg, StreamingChannel streamChannel) {
-/*        Message<String> message = deserializer.deserializeMessage(msg, String.class);
-        // TODO: Authentication should happen at JWT handler
-
-        // JsonJackson.msgFromJson(msg, Message.class);
-        // TODO: security check
-        switch (Command.valueOf(message.getCommand())) {
-            case CONNECT:
-                String loginName = (String) message.getPayload();
-                DataClient dataClient = DataClient.builder()
-                        .loginName(loginName)
-                        .connectionInfo(ConnectionInfo.from(null)) // todo: stub
-                        .streamingChannel(streamChannel)
-                        .build();
-                clientRegistration(dataClient);
-                break;
-            case READ:
-                break;
-            default:
-                throw new UnsupportedOperationException();
-                // close connection if unrecognized command
-        }*/
     }
 
     @Override
@@ -107,7 +85,7 @@ public class StreamerController implements CommandListener {
 
     @Override
     public void clientRegistration(DataClient dataClient) {
-//        log.debug("Received [{}]", dataClient);
+        log.debug("Received [{}]", dataClient);
         clientRegister.register(dataClient);
     }
 

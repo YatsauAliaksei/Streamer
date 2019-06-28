@@ -18,7 +18,7 @@
 
     <logger name="by.mrj" level="DEBUG"/>
     <logger name="ch.qos.logback" level="INFO"/>
-    <logger name="io.netty" level="INFO"/>
+    <logger name="io.netty" level="DEBUG"/>
 
     <root level="WARN">
         <appender-ref ref="ASYNC" />

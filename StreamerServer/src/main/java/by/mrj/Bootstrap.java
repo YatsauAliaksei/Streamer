@@ -17,6 +17,6 @@ public class Bootstrap {
 
     public void run() {
         log.info("Running port listener [{}]", portListener);
-        portListener.listen(commandListener);
+        portListener.listen();
     }
 }

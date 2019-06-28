@@ -3,6 +3,7 @@ package by.mrj.transport.websocket.client;
 import by.mrj.domain.Message;
 import by.mrj.domain.MessageHeader;
 import by.mrj.serialization.json.JsonJackson;
+import by.mrj.utils.ByteBufUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -20,6 +21,7 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.util.CharsetUtil;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -37,13 +39,15 @@ import java.util.concurrent.CompletableFuture;
 public class WebSocketClient {
 
     // todo: configurable
-    static final String URL = System.getProperty("url", "ws://127.0.0.1:8080/websocket");
+    static final String URL = System.getProperty("url", "http://127.0.0.1:8080/websocket");
 
     public Channel channel;
     private final JsonJackson serializer = new JsonJackson();
     private ChannelFutureListener handshakeListener = future -> {
         // NOOP
     };
+    @Getter
+    private ChannelFuture handshakeFuture;
 
     public void registerHandshakeListener(ChannelFutureListener listener) {
         this.handshakeListener = listener;
@@ -57,12 +61,12 @@ public class WebSocketClient {
             } catch (URISyntaxException e) {
                 throw new RuntimeException(e);
             }
-            String scheme = uri.getScheme() == null ? "ws" : uri.getScheme();
+            String scheme = uri.getScheme() == null ? "http" : uri.getScheme();
             final String host = uri.getHost() == null ? "127.0.0.1" : uri.getHost();
 
             final int port = getPort(uri, scheme);
 
-            if (!"ws".equalsIgnoreCase(scheme) && !"wss".equalsIgnoreCase(scheme)) {
+            if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
                 log.error("Only WS(S) is supported.");
                 throw new RuntimeException("Only WS(S) is supported.");
             }
@@ -103,9 +107,13 @@ public class WebSocketClient {
                 ;
 
                 try {
-                    this.channel = b.connect(uri.getHost(), port).sync().channel();
+                    this.channel = b.connect(host, port).sync().channel();
                     // waiting for handshake
-                    webSocketCompleteClientHandler.handshakeFuture().addListener(handshakeListener).sync();
+                    log.info("WS handshake started waiting...");
+                    handshakeFuture = webSocketCompleteClientHandler.handshakeFuture().addListener(handshakeListener);
+                    handshakeFuture.sync();
+
+                    log.info("WS handshake finished. Connected to {}:{}", host, port);
 
                     this.channel.closeFuture().sync();
                 } catch (InterruptedException e) {
@@ -125,19 +133,9 @@ public class WebSocketClient {
     public void send(Message<?> msg, MessageHeader messageHeader) {
         log.debug("Sending msg [{}]", msg);
 
-        ByteBuf header = Unpooled.buffer();
-        header.writeCharSequence(serializer.serialize(messageHeader), CharsetUtil.UTF_8);
+        ByteBuf msgBuf = ByteBufUtils.create(serializer, messageHeader, msg);
 
-        ByteBuf body = Unpooled.buffer();
-        body.writeCharSequence(JsonJackson.toJson(msg), CharsetUtil.UTF_8);
-
-        ByteBuf message = Unpooled.wrappedBuffer(3,
-                Unpooled.buffer(4, 4).writeInt(header.readableBytes()), // header size
-                header,
-                body
-        );
-
-        WebSocketFrame frame = new BinaryWebSocketFrame(message);
+        WebSocketFrame frame = new BinaryWebSocketFrame(msgBuf);
         channel.writeAndFlush(frame);
     }
 

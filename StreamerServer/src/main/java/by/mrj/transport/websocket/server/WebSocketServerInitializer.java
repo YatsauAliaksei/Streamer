@@ -2,6 +2,9 @@ package by.mrj.transport.websocket.server;
 
 import by.mrj.controller.CommandListener;
 import by.mrj.transport.HttpServerHandler;
+import by.mrj.transport.converter.HttpMessageChannelConverter;
+import by.mrj.transport.converter.MessageChannelConverter;
+import by.mrj.transport.converter.WebSocketTextMessageChannelConverter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -21,6 +24,8 @@ public class WebSocketServerInitializer extends ChannelInitializer<SocketChannel
 
     private final SslContext sslCtx;
     private final CommandListener commandListener;
+    private final MessageChannelConverter<String, ?> httpMessageChannelConverter;
+    private final MessageChannelConverter<String, ?> wsMessageChannelConverter;
 
     @Override
     public void initChannel(SocketChannel ch) throws Exception {
@@ -33,7 +38,7 @@ public class WebSocketServerInitializer extends ChannelInitializer<SocketChannel
         pipeline.addLast(new HttpObjectAggregator(65536));
 //        pipeline.addLast(new WebSocketServerCompressionHandler());
         pipeline.addLast(new WebSocketServerProtocolHandler(WEBSOCKET_PATH, null, true));
-        pipeline.addLast(new HttpServerHandler(commandListener));
-        pipeline.addLast(new WebSocketFrameHandler(commandListener));
+        pipeline.addLast(new HttpServerHandler(commandListener, httpMessageChannelConverter));
+        pipeline.addLast(new WebSocketFrameHandler(commandListener, wsMessageChannelConverter));
     }
 }

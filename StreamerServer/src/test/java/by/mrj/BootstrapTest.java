@@ -7,12 +7,10 @@ import by.mrj.serialization.json.JsonJackson;
 import by.mrj.service.register.InMemoryClientRegister;
 import by.mrj.transport.websocket.server.WebSocketServer;
 import com.google.common.collect.Lists;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -24,7 +22,7 @@ class BootstrapTest {
         StreamerController streamerController = getStreamerController();
 
         Bootstrap bootstrap = Bootstrap.builder()
-                .portListener(new WebSocketServer())
+                .portListener(new WebSocketServer(null))
                 .commandListener(streamerController)
                 .build();
 
@@ -34,7 +32,8 @@ class BootstrapTest {
     private StreamerController getStreamerController() {
         List<Message<String>> messages = testData(1);
 
-        return StreamerController.builder()
+        return null;
+/*        return StreamerController.builder()
                 .clientRegister(InMemoryClientRegister.builder()
                         .clientRegistrationListener(Lists.newArrayList((dataClient) -> {
 
@@ -42,16 +41,17 @@ class BootstrapTest {
                             messages.stream()
                                     .peek(m -> log.debug("Sending message to client [{}]", m))
                                     .map(JsonJackson::toJson)
-                                    .map(TextWebSocketFrame::new)
-                                    .forEach(streamingChannel::writeAndFlush);
+                                    .forEach(streamingChannel::write);
 
                             log.info("Client registered [{}]", dataClient.getLoginName());
 
-                            streamingChannel.getChannel().close();
+                            streamingChannel.flush();
+
+                            streamingChannel.getChannel().close(); // in real world we shouldn't do that
                         }))
                         .build())
                 .deserializer(new JsonJackson())
-                .build();
+                .build();*/
     }
 
     private List<Message<String>> testData(int size) {

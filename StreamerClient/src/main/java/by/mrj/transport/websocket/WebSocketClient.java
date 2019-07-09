@@ -1,4 +1,4 @@
-package by.mrj.transport.websocket.client;
+package by.mrj.transport.websocket;
 
 import by.mrj.domain.Message;
 import by.mrj.domain.MessageHeader;
@@ -6,14 +6,12 @@ import by.mrj.serialization.json.JsonJackson;
 import by.mrj.utils.ByteBufUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpClientCodec;
-import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.websocketx.*;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -39,7 +37,7 @@ import java.util.concurrent.CompletableFuture;
 public class WebSocketClient {
 
     // todo: configurable
-    static final String URL = System.getProperty("url", "http://127.0.0.1:8080/websocket");
+    static final String URL = System.getProperty("url", "http://127.0.0.1:8083/websocket");
 
     public Channel channel;
     private final JsonJackson serializer = new JsonJackson();
@@ -95,7 +93,7 @@ public class WebSocketClient {
                                     p.addLast(sslCtx.newHandler(ch.alloc(), host, port));
                                 }
                                 p.addLast(new HttpClientCodec());
-                                p.addLast(new HttpObjectAggregator(8192));
+//                                p.addLast(new HttpObjectAggregator(8192));
 //                                    WebSocketClientCompressionHandler.INSTANCE,
                                 p.addLast(webSocketCompleteClientHandler);
                                 p.addLast(new WebSocketClientCloseHandler());
@@ -137,6 +135,8 @@ public class WebSocketClient {
 
         WebSocketFrame frame = new BinaryWebSocketFrame(msgBuf);
         channel.writeAndFlush(frame);
+
+        log.debug("Msg have been sent [{}]", frame.content().toString(CharsetUtil.UTF_8));
     }
 
     private WebSocketClientTextHandler getWebSocketClientHandler(URI uri) {

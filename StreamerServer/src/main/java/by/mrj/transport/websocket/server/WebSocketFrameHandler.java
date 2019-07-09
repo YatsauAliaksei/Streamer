@@ -18,6 +18,7 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
 
     private final CommandListener commandListener;
     private final MessageChannelConverter<String, ?> messageChannelConverter;
+    private final MessageChannelConverter<ByteBuf, ?> byteMessageChannelConverter;
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
@@ -41,7 +42,8 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
             String body = message.readCharSequence(message.readableBytes(), CharsetUtil.UTF_8).toString();
 
 //            ctx.channel().remoteAddress()  TODO: create ConnectionInfo
-            commandListener.processRequest(header, body, StreamingChannel.from(ctx, "ws", messageChannelConverter));
+            commandListener.processRequest(header, body, StreamingChannel.from(ctx, "ws",
+                    messageChannelConverter, byteMessageChannelConverter));
         } else {
             throw new UnsupportedOperationException("Unsupported frame type: " + frame.getClass().getName());
         }

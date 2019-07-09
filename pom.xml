@@ -36,7 +36,7 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <argLine>-Djava.security.egd=file:/dev/./urandom -Xmx256m</argLine>
         <!--<m2e.apt.activation>jdt_apt</m2e.apt.activation>-->
-        <!--<run.addResources>false</run.addResources>-->
+        <run.addResources>false</run.addResources>
         <!-- These remain empty unless the corresponding profile is active -->
         <profile.swagger/>
         <profile.tls/>
@@ -88,15 +88,15 @@
     </dependencyManagement>
 
     <dependencies>
-        <!--<dependency>-->
-            <!--<groupId>io.github.jhipster</groupId>-->
-            <!--<artifactId>jhipster-framework</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>io.github.jhipster</groupId>
+            <artifactId>jhipster-framework</artifactId>
+        </dependency>
 
-        <!--<dependency>-->
-            <!--<groupId>org.springframework.boot</groupId>-->
-            <!--<artifactId>spring-boot-starter-cache</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-hppc</artifactId>
@@ -114,14 +114,14 @@
             <!--<artifactId>h2</artifactId>-->
             <!--<scope>test</scope>-->
         <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>com.hazelcast</groupId>-->
-            <!--<artifactId>hazelcast</artifactId>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>com.hazelcast</groupId>-->
-            <!--<artifactId>hazelcast-spring</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast-spring</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
@@ -144,10 +144,10 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>javax.cache</groupId>-->
-            <!--<artifactId>cache-api</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>javax.cache</groupId>
+            <artifactId>cache-api</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
@@ -171,23 +171,23 @@
             <!--<artifactId>mapstruct-processor</artifactId>-->
             <!--<scope>provided</scope>-->
         <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>org.springframework.boot</groupId>-->
-            <!--<artifactId>spring-boot-configuration-processor</artifactId>-->
-            <!--<scope>provided</scope>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>org.springframework.boot</groupId>-->
-            <!--<artifactId>spring-boot-loader-tools</artifactId>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>org.springframework.boot</groupId>-->
-            <!--<artifactId>spring-boot-starter-actuator</artifactId>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>org.springframework.boot</groupId>-->
-            <!--<artifactId>spring-boot-starter-aop</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-loader-tools</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-logging</artifactId>
@@ -206,18 +206,18 @@
             <!--<groupId>org.springframework.boot</groupId>-->
             <!--<artifactId>spring-boot-starter-mail</artifactId>-->
         <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>org.springframework.boot</groupId>-->
-            <!--<artifactId>spring-boot-starter-security</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
         <!--<dependency>-->
             <!--<groupId>org.springframework.boot</groupId>-->
             <!--<artifactId>spring-boot-starter-thymeleaf</artifactId>-->
         <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>org.springframework.boot</groupId>-->
-            <!--<artifactId>spring-boot-starter-web</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -239,10 +239,10 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>org.zalando</groupId>-->
-            <!--<artifactId>problem-spring-web</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>org.zalando</groupId>
+            <artifactId>problem-spring-web</artifactId>
+        </dependency>
         <!--<dependency>-->
             <!--<groupId>org.springframework.boot</groupId>-->
             <!--<artifactId>spring-boot-starter-websocket</artifactId>-->
@@ -270,18 +270,18 @@
             <!--<groupId>org.springframework.security</groupId>-->
             <!--<artifactId>spring-security-data</artifactId>-->
         <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>io.micrometer</groupId>-->
-            <!--<artifactId>micrometer-registry-prometheus</artifactId>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>io.dropwizard.metrics</groupId>-->
-            <!--<artifactId>metrics-core</artifactId>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>org.springframework.security</groupId>-->
-            <!--<artifactId>spring-security-messaging</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-messaging</artifactId>
+        </dependency>
         <!-- jhipster-needle-maven-add-dependency -->
 
 
@@ -313,7 +313,7 @@
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-generator-annprocess</artifactId>
             <version>1.21</version>
-            <!--<scope>test</scope>-->
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

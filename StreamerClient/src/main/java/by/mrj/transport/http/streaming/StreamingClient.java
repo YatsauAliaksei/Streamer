@@ -1,4 +1,4 @@
-package by.mrj.transport.http.longpolling;
+package by.mrj.transport.http.streaming;
 
 import by.mrj.domain.Message;
 import by.mrj.domain.MessageHeader;
@@ -11,8 +11,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
-import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
@@ -32,10 +30,10 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 @State(Scope.Benchmark)
 @RequiredArgsConstructor
-public class LongPollingHttpClient {
+public class StreamingClient {
 
     // todo: configurable
-    static final String URL = System.getProperty("url", "http://127.0.0.1:8080/");
+    static final String URL = System.getProperty("url", "http://127.0.0.1:8083/");
 
     public Channel channel;
     private final JsonJackson serializer = new JsonJackson();
@@ -62,9 +60,6 @@ public class LongPollingHttpClient {
 
             EventLoopGroup group = new NioEventLoopGroup();
             try {
-
-//                WebSocketClientHandshaker wsHandshaker = getWebSocketClientHandshaker(uri);
-//                WebSocketCompleteClientHandler webSocketCompleteClientHandler = new WebSocketCompleteClientHandler(wsHandshaker);
                 Bootstrap b = new Bootstrap();
                 b.group(group)
                         .channel(NioSocketChannel.class)
@@ -77,12 +72,10 @@ public class LongPollingHttpClient {
                                     p.addLast(sslCtx.newHandler(ch.alloc(), host, port));
                                 }
                                 p.addLast(new HttpClientCodec());
-                                p.addLast(new HttpObjectAggregator(8192));
 //                                    WebSocketClientCompressionHandler.INSTANCE,
-                                p.addLast(new LongPoolingHttpClientTextHandler());
-//                                p.addLast(new WebSocketClientCloseHandler());
-//                                p.addLast(new WebSocketClientPongHandler());
-//                                p.addLast(new WebSocketClientTextHandler());
+                                p.addLast(new StreamingClientDefaultResponseContentHandler());
+                                p.addLast(new StreamingClientTextContentHandler());
+                                p.addLast(new StreamingClientTextHandler());
                             }
                         })
                         .option(ChannelOption.SO_KEEPALIVE, true)
@@ -90,8 +83,6 @@ public class LongPollingHttpClient {
 
                 try {
                     this.channel = b.connect(uri.getHost(), port).sync().channel();
-                    // waiting for handshake
-//                    webSocketCompleteClientHandler.handshakeFuture().addListener(handshakeListener).sync();
 
                     this.channel.closeFuture().sync();
                 } catch (InterruptedException e) {

@@ -3,11 +3,11 @@ package by.mrj.serialization.json;
 import by.mrj.domain.Message;
 import by.mrj.serialization.DataDeserializer;
 import by.mrj.serialization.DataSerializer;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.*;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.Serializable;
 
 @Slf4j
+// TODO: think about using Spring JsonJackson approach
 public class JsonJackson implements DataDeserializer, DataSerializer {
 
     public static final ObjectMapper objectMapper = new ObjectMapper();
@@ -31,6 +32,7 @@ public class JsonJackson implements DataDeserializer, DataSerializer {
         // DeserializationFeature for changing how JSON is read as POJOs:
         // to prevent exception when encountering unknown property:
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     public static String toJson(Object obj) {

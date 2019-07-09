@@ -8,8 +8,10 @@ import java.io.Serializable;
 
 @Value
 @Builder
-//@NoArgsConstructor
 public class DataClient implements Serializable {
+    // FIXME:
+    public static final DataClient DUMMY = DataClient.builder().loginName("DUMMY").build();
+
     private String loginName;
     private ConnectionInfo connectionInfo;
     private StreamingChannel streamingChannel;

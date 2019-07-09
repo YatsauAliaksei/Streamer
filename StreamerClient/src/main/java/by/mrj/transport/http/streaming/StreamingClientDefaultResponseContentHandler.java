@@ -1,12 +1,12 @@
-package by.mrj.transport.http.longpolling;
+package by.mrj.transport.http.streaming;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.DefaultHttpResponse;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class LongPoolingHttpClientTextHandler extends SimpleChannelInboundHandler<FullHttpResponse> {
+public class StreamingClientDefaultResponseContentHandler extends SimpleChannelInboundHandler<DefaultHttpResponse> {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
@@ -14,8 +14,9 @@ public class LongPoolingHttpClientTextHandler extends SimpleChannelInboundHandle
     }
 
     @Override
-    public void channelRead0(ChannelHandlerContext ctx, FullHttpResponse response) throws Exception {
+    public void channelRead0(ChannelHandlerContext ctx, DefaultHttpResponse response) throws Exception {
         log.debug("LongPolling Http Client received message: [{}]", response);
+//        log.debug("LongPolling Http Client received message: [{}]", content.content().toString(CharsetUtil.UTF_8));
     }
 
     @Override

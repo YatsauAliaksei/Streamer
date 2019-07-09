@@ -1,14 +1,17 @@
-package by.mrj.transport.websocket.client;
+package by.mrj.transport.websocket;
 
 import by.mrj.domain.Command;
 import by.mrj.domain.Message;
 import by.mrj.domain.MessageHeader;
+import by.mrj.transport.websocket.WebSocketClient;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openjdk.jmh.annotations.*;
 
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static by.mrj.transport.http.longpolling.LongPollingHttpClientTest.userIdIncrement;
 
 @State(Scope.Benchmark)
 @Slf4j
@@ -34,8 +37,6 @@ public class WebSocketClientTest {
 
     }
 
-    private AtomicInteger iterator = new AtomicInteger();
-
     @Test
     @Benchmark
     public void send() throws InterruptedException {
@@ -43,7 +44,7 @@ public class WebSocketClientTest {
 
         webSocketClient.send(
                 Message.<String>builder()
-                        .payload("myLoginName-" + iterator.incrementAndGet())
+                        .payload("user" + userIdIncrement.incrementAndGet())
                         .build(),
                 MessageHeader
                         .builder()

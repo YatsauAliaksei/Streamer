@@ -1,4 +1,4 @@
-package by.mrj.transport.http.longpolling;
+package by.mrj.transport.http.streaming;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -6,7 +6,7 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class LongPoolingHttpClientTextHandler extends SimpleChannelInboundHandler<FullHttpResponse> {
+public class StreamingClientTextHandler extends SimpleChannelInboundHandler<FullHttpResponse> {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {

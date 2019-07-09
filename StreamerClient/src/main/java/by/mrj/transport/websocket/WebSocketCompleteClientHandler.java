@@ -1,4 +1,4 @@
-package by.mrj.transport.websocket.client;
+package by.mrj.transport.websocket;
 
 import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpResponse;

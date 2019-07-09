@@ -33,7 +33,7 @@ spring:
       enabled: false # we use Webpack dev server + BrowserSync for livereload
 #  jackson:
 #    serialization:
-#      indent-output: true
+#      indent-output: true   # TODO: what's that?
 #  mail:
 #    host: localhost
 #    port: 25
@@ -43,6 +43,11 @@ spring:
     cache-duration: PT1S # 1 second, see the ISO 8601 standard
   thymeleaf:
     cache: false
+  jmx:
+    enabled: true
+
+spring.jmx:
+    enabled: true
 
 server:
   port: 8080
@@ -103,4 +108,11 @@ jhipster:
 
 # application:
 #streamer:
-#  port: 8080 # Port to listen
+streamer:
+  port: 8083 # Port to listen
+  rmi.enabled: true
+
+
+management:
+  endpoints.web:
+    exposure.include: /jolokia

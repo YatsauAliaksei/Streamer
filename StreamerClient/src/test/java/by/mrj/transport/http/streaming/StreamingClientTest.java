@@ -1,4 +1,4 @@
-package by.mrj.transport.http.longpolling;
+package by.mrj.transport.http.streaming;
 
 import by.mrj.domain.Command;
 import by.mrj.domain.Message;
@@ -8,21 +8,20 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openjdk.jmh.annotations.*;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import static by.mrj.transport.http.longpolling.LongPollingHttpClientTest.userIdIncrement;
 
 @State(Scope.Benchmark)
 @Slf4j
-public class LongPollingHttpClientTest {
+public class StreamingClientTest {
 
-    private static LongPollingClient longPollingHttpClient = new LongPollingClient();
-    public static final AtomicInteger userIdIncrement = new AtomicInteger();
+    private static StreamingClient streamingClient = new StreamingClient();
 
     @BeforeAll
     @Setup(Level.Invocation)
     public static void before() throws InterruptedException {
 
 //        log.info("Creating channel...");
-        longPollingHttpClient.createChannel();
+        streamingClient.createChannel();
 
 //        log.info("Channel created");
 
@@ -34,7 +33,7 @@ public class LongPollingHttpClientTest {
     public void send() throws InterruptedException {
         log.debug("Sending benchmark message...");
 
-        longPollingHttpClient.send(
+        streamingClient.send(
                 Message.<String>builder()
                         .payload("user" + userIdIncrement.incrementAndGet())
                         .build(),
@@ -43,6 +42,6 @@ public class LongPollingHttpClientTest {
                         .command(Command.CONNECT)
                         .build());
 
-        longPollingHttpClient.closeFutureSync();
+        streamingClient.closeFutureSync();
     }
 }

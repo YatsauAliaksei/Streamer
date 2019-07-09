@@ -1,6 +1,7 @@
 package by.mrj.transport;
 
 import by.mrj.controller.CommandListener;
+import by.mrj.domain.ConnectionType;
 import by.mrj.domain.StreamingChannel;
 import by.mrj.transport.converter.MessageChannelConverter;
 import io.netty.buffer.ByteBuf;
@@ -16,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
 import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
 import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
+import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
 import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_0;
@@ -23,22 +25,18 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 @Slf4j
 @RequiredArgsConstructor
-public class HttpServerHandler extends SimpleChannelInboundHandler<HttpRequest> {
+public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     private final CommandListener commandListener;
     private final MessageChannelConverter<String, ?> messageChannelConverter;
+    private final MessageChannelConverter<ByteBuf, ?> byteMessageChannelConverter;
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, HttpRequest req) throws Exception {
-        // Handle a bad request.
-
-        if (HttpUtil.is100ContinueExpected(req)) {
-            send100Continue(ctx);
-        }
+    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
 
         if (!req.decoderResult().isSuccess()) {
             log.debug("Bad request [{}]", req);
-//            sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST));
+            sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST));
             return;
         }
 
@@ -48,39 +46,28 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpRequest> 
             return;
         }
 
-        // Send the index page
-        if (req instanceof HttpContent) {
-
-            ByteBuf content = ((HttpContent) req).content();
-            if (!content.isReadable()) {
-                return;
-            }
-
-            log.debug("Bytes to read: [{}]", content.readableBytes());
-
-            int headerSize = content.readInt();
-            String header = content.readCharSequence(headerSize, CharsetUtil.UTF_8).toString();
-            String body = content.readCharSequence(content.readableBytes(), CharsetUtil.UTF_8).toString();
-
-            commandListener.processRequest(header, body, StreamingChannel.from(ctx, "http", messageChannelConverter));
+        ByteBuf content = req.content();
+        if (!content.isReadable()) {
+            return;
         }
+
+        log.debug("Bytes to read: [{}]", content.readableBytes());
+
+        int headerSize = content.readInt();
+        String header = content.readCharSequence(headerSize, CharsetUtil.UTF_8).toString();
+        String body = content.readCharSequence(content.readableBytes(), CharsetUtil.UTF_8).toString();
+
+        commandListener.processRequest(header, body,
+                StreamingChannel.from(ctx, "http", messageChannelConverter, byteMessageChannelConverter));
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        cause.printStackTrace();
+        log.error("Http request processing failed", cause);
         ctx.close();
     }
 
     private static void sendHttpResponse(ChannelHandlerContext ctx, HttpRequest req, FullHttpResponse res) {
-        // Generate an error page if response getStatus code is not OK (200).
-        if (res.status().code() != 200) {
-            ByteBuf buf = Unpooled.copiedBuffer(res.status().toString(), CharsetUtil.UTF_8);
-            res.content().writeBytes(buf);
-            buf.release();
-            HttpUtil.setContentLength(res, res.content().readableBytes());
-        }
-
         // Send the response and close the connection if necessary.
         if (!HttpUtil.isKeepAlive(req) || res.status().code() != 200) {
             // Tell the client we're going to close the connection.
@@ -92,10 +79,5 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpRequest> 
             }
             ctx.writeAndFlush(res);
         }
-    }
-
-    private static void send100Continue(ChannelHandlerContext ctx) {
-        FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, CONTINUE);
-        ctx.write(response);
     }
 }

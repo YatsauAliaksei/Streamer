@@ -1,4 +1,4 @@
-package by.mrj.transport.websocket.client;
+package by.mrj.transport.websocket;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;

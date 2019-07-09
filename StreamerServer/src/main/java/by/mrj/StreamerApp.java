@@ -2,14 +2,14 @@ package by.mrj;
 
 import by.mrj.config.ApplicationProperties;
 import by.mrj.config.DefaultProfileUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.core.env.Environment;
 
 import java.net.InetAddress;
@@ -17,11 +17,11 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collection;
 
+@Slf4j
 @SpringBootApplication
 @EnableConfigurationProperties({ApplicationProperties.class})
+@EnableMBeanExport
 public class StreamerApp implements InitializingBean {
-
-    private static final Logger log = LoggerFactory.getLogger(StreamerApp.class);
 
     private final Environment env;
 

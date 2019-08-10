@@ -2,13 +2,21 @@ package by.mrj;
 
 import by.mrj.client.config.ApplicationProperties;
 import by.mrj.client.config.DefaultProfileUtil;
+import by.mrj.client.config.streamer.StreamerClientConfiguration;
+import by.mrj.client.connection.ConnectionManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 
 import java.net.InetAddress;
@@ -16,7 +24,9 @@ import java.net.UnknownHostException;
 
 @Slf4j
 @SpringBootApplication
-@EnableConfigurationProperties({ApplicationProperties.class})
+//@SpringBootConfiguration
+//@ComponentScan(basePackageClasses = StreamerClientConfiguration.class)
+//@EnableConfigurationProperties({ApplicationProperties.class})
 public class StreamerClientApp implements InitializingBean {
 
     private final Environment env;
@@ -26,6 +36,12 @@ public class StreamerClientApp implements InitializingBean {
         log.info("Active profiles [{}]", this.env.getActiveProfiles());
     }
 
+//    @EventListener(ApplicationReadyEvent.class)
+//    public void autoConnect(ApplicationReadyEvent event) {
+//        ConnectionManager connectionManager = event.getApplicationContext().getBean(ConnectionManager.class);
+//        connectionManager.autoConnect();
+//    }
+
     /**
      * Main method, used to run the application.
      * @param args the command line arguments.
@@ -34,7 +50,14 @@ public class StreamerClientApp implements InitializingBean {
         log.info("Starting client...");
         SpringApplication app = new SpringApplication(StreamerClientApp.class);
         app.setBannerMode(Banner.Mode.OFF);
+
         DefaultProfileUtil.addDefaultProfile(app);
+
+        app.addListeners((ApplicationListener<ApplicationReadyEvent>) event -> {
+            ConnectionManager connectionManager = event.getApplicationContext().getBean(ConnectionManager.class);
+            connectionManager.autoConnect();
+        });
+
         app.run(args);
 //        Environment env = app.run(args).getEnvironment();
 //        logApplicationStartup(env);

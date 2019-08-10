@@ -1,6 +1,5 @@
-package by.mrj.test;
+package by.mrj.it;
 
-import by.mrj.StreamerClientApp;
 import by.mrj.client.config.streamer.StreamerClientConfiguration;
 import by.mrj.client.connection.ConnectionManager;
 import by.mrj.client.transport.ServerChannelHolder;
@@ -9,18 +8,16 @@ import by.mrj.common.domain.ConnectionType;
 import by.mrj.common.domain.Message;
 import by.mrj.common.domain.MessageHeader;
 import by.mrj.common.domain.client.ConnectionInfo;
-import by.mrj.server.config.AsyncConfiguration;
 import by.mrj.server.config.streamer.StreamerListenerConfiguration;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.event.EventListener;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -30,27 +27,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 
 @Slf4j
-@SpringBootTest(classes = {
-        StreamerListenerConfiguration.class,
-//        StreamerBasicConnectionTest.PauseConfiguration.class,
-//        AsyncConfiguration.class,
-//        StreamerClientConfiguration.class,
-        StreamerBasicConnectionTest.class
-})
+@SpringBootTest
+        (classes = {
+                StreamerClientConfiguration.class,
+                StreamerListenerConfiguration.class,
+                StreamerBasicConnectionTest.class
+        }, properties = "config/application-dev.yml")
 @ActiveProfiles("dev")
 @Configuration
 @ExtendWith(SpringExtension.class)
 public class StreamerBasicConnectionTest {
-
-    @Configuration
-    public class PauseConfiguration {
-
-        @Bean
-        public String nothing() throws InterruptedException {
-            Thread.sleep(500);
-            return "";
-        }
-    }
 
     @Autowired
     private ConnectionManager connectionManager;
@@ -61,9 +47,10 @@ public class StreamerBasicConnectionTest {
 
     private AtomicInteger userIdIncrementWS = new AtomicInteger();
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void createChannels() throws InterruptedException {
-        StreamerClientApp.main(new String[0]);
+    @BeforeEach
+    public void before() {
+        ServerChannelHolder serverChannelHolder = connectionManager.autoConnect();
+        log.info("Connection created. [{}]", serverChannelHolder);
     }
 
     @Test

@@ -51,4 +51,9 @@ public class LongPollingServerChannel implements ServerChannel {
     public void closeFutureSync() {
         channel.closeFuture().sync();
     }
+
+    @Override
+    public String toString() {
+        return super.toString();
+    }
 }

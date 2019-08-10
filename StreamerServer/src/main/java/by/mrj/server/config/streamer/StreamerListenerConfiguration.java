@@ -6,6 +6,7 @@ import by.mrj.common.serialization.DataDeserializer;
 import by.mrj.common.serialization.DataSerializer;
 import by.mrj.common.serialization.json.JsonJackson;
 import by.mrj.common.transport.converter.MessageChannelConverter;
+import by.mrj.server.config.ApplicationProperties;
 import by.mrj.server.controller.CommandListener;
 import by.mrj.server.service.register.ClientRegister;
 import by.mrj.server.service.register.InMemoryClientRegister;
@@ -21,10 +22,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableMBeanExport;
 
 import javax.net.ssl.SSLException;
 import java.security.cert.CertificateException;
@@ -34,8 +39,14 @@ import java.util.stream.IntStream;
 
 
 @Slf4j
+//@SpringBootApplication
 @Configuration
 @ComponentScan("by.mrj.server")
+@EnableAutoConfiguration
+@EnableConfigurationProperties({ApplicationProperties.class})
+@EnableMBeanExport
+//@EnableConfigurationProperties({ApplicationProperties.class})
+//@EnableMBeanExport
 public class StreamerListenerConfiguration {
 
     @Value("${streamer.port}")

@@ -1,5 +1,6 @@
 package by.mrj.client.config.streamer;
 
+import by.mrj.client.config.ApplicationProperties;
 import by.mrj.client.connection.AutoConnectionInfoFactory;
 import by.mrj.client.connection.ConnectionManager;
 import by.mrj.client.transport.ClientChannelFactory;
@@ -11,10 +12,16 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.AutoConfigurationExcludeFilter;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.TypeExcludeFilter;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 
 import javax.net.ssl.SSLException;
 import java.security.cert.CertificateException;
@@ -25,8 +32,16 @@ import java.util.stream.Collectors;
 
 
 @Slf4j
+//@SpringBootApplication
 @Configuration
 @ComponentScan("by.mrj.client")
+@EnableConfigurationProperties({ApplicationProperties.class})
+@EnableAutoConfiguration
+//@EnableConfigurationProperties({ApplicationProperties.class})
+//@ComponentScan(excludeFilters = {
+//        @ComponentScan.Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
+//        @ComponentScan.Filter(type = FilterType.CUSTOM,
+//                classes = AutoConfigurationExcludeFilter.class) })
 public class StreamerClientConfiguration {
 
     @Bean
@@ -47,7 +62,8 @@ public class StreamerClientConfiguration {
         ConnectionManager dummyConnectionManager = new ConnectionManager(connectionTypeToClientChannelFactory,
                 autoConnectionInfoFactory);
 
-        dummyConnectionManager.autoConnect();
+//        dummyConnectionManager.autoConnect();
+        log.info("Connection manager created.");
 
         return dummyConnectionManager;
     }

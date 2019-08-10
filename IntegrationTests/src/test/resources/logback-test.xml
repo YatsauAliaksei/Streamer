@@ -20,8 +20,9 @@
     <logger name="by.mrj" level="DEBUG"/>
     <logger name="ch.qos.logback" level="INFO"/>
     <logger name="io.netty" level="INFO"/>
-    <logger name="org.springframework" level="DEBUG"/>
-    <logger name="org.hibernate" level="INFO"/>
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="org.springframework.context.annotation" level="WARN"/>
+    <logger name="org.hibernate" level="WARN"/>
 
 
     <root level="WARN">

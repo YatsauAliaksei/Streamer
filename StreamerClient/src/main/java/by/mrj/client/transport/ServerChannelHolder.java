@@ -8,12 +8,14 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @RequiredArgsConstructor
+@ToString(exclude = "closeChannelFuture")
 public class ServerChannelHolder {
 
     @Getter

@@ -23,6 +23,8 @@
 
     <logger name="com.sun" level="WARN"/>
     <logger name="sun.rmi" level="WARN"/>
+    <logger name="org.xnio" level="WARN"/>
+    <logger name="org.hibernate.validator" level="WARN"/>
 
     <logger name="org.springframework" level="WARN"/>
     <logger name="org.springframework.web" level="WARN"/>

@@ -11,6 +11,7 @@
         <module>StreamerServer</module>
         <module>StreamerCommon</module>
         <module>StreamerTest</module>
+        <module>IntegrationTests</module>
     </modules>
 
     <packaging>pom</packaging>

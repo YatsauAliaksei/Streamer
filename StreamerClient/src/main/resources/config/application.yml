@@ -111,7 +111,7 @@ info:
 
 jhipster:
   clientApp:
-    name: 'streamerApp'
+    name: 'streamerClientApp'
   # By default CORS is disabled. Uncomment to enable.
   # cors:
   #     allowed-origins: "*"

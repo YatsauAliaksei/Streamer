@@ -1,6 +1,7 @@
 package by.mrj.serialization.json;
 
-import by.mrj.domain.Message;
+import by.mrj.common.domain.Message;
+import by.mrj.common.serialization.json.JsonJackson;
 import org.junit.jupiter.api.Test;
 
 class JsonJacksonTest {

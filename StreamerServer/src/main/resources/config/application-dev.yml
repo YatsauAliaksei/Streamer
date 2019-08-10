@@ -110,6 +110,7 @@ jhipster:
 #streamer:
 streamer:
   port: 8083 # Port to listen
+  ssl: false
   rmi.enabled: true
 
 

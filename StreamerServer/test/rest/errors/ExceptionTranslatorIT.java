@@ -1,6 +1,6 @@
 package by.mrj.web.rest.errors;
 
-import by.mrj.StreamerApp;
+import by.mrj.StreamerServerApp;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

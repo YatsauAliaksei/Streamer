@@ -17,8 +17,8 @@
     <dependencies>
         <dependency>
             <groupId>by.mrj</groupId>
-            <version>0.0.1-SNAPSHOT</version>
             <artifactId>streamer-common</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>

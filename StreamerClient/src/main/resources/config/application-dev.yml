@@ -1,0 +1,67 @@
+# ===================================================================
+# Spring Boot configuration for the "dev" profile.
+#
+# This configuration overrides the application.yml file.
+#
+# More information on profiles: https://www.jhipster.tech/profiles/
+# More information on configuration properties: https://www.jhipster.tech/common-application-properties/
+# ===================================================================
+
+# ===================================================================
+# Standard Spring Boot properties.
+# Full reference is available at:
+# http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
+# ===================================================================
+
+logging:
+  level:
+    ROOT: DEBUG
+    io.github.jhipster: DEBUG
+    by.mrj: DEBUG
+
+server:
+  port: 8081
+spring:
+  profiles:
+    active: dev
+#    include:
+#      - swagger
+      # Uncomment to activate TLS for the dev profile
+      #- tls
+#  jackson:
+#    serialization:
+#      indent-output: true   # TODO: what's that?
+#  mail:
+#    host: localhost
+#    port: 25
+#    username:
+#    password:
+  messages:
+    cache-duration: PT1S # 1 second, see the ISO 8601 standard
+  thymeleaf:
+    cache: false
+  jmx:
+    enabled: true
+
+spring.jmx:
+    enabled: true
+
+# ===================================================================
+# Application specific properties
+# Add your own application properties here, see the ApplicationProperties class
+# to have type-safe configuration, like in the JHipsterProperties above
+#
+# More documentation is available at:
+# https://www.jhipster.tech/common-application-properties/
+# ===================================================================
+
+# application:
+#streamer:
+streamer:
+  port: 8083 # Port to connect
+  ssl: false
+  host: 127.0.0.1
+
+management:
+  endpoints.web:
+    exposure.include: /jolokia

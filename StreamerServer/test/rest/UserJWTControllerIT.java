@@ -1,6 +1,6 @@
 package by.mrj.web.rest;
 
-import by.mrj.StreamerApp;
+import by.mrj.StreamerServerApp;
 import by.mrj.security.jwt.TokenProvider;
 import by.mrj.web.rest.errors.ExceptionTranslator;
 import by.mrj.web.rest.vm.LoginVM;

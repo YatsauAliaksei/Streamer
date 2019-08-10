@@ -1,4 +1,4 @@
-package by.mrj.aop.logging;
+package by.mrj.server.aop.logging;
 
 import io.github.jhipster.config.JHipsterConstants;
 

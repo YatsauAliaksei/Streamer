@@ -31,10 +31,10 @@
     <!--<logger name="org.apache.catalina.startup.DigesterFactory" level="OFF"/>-->
     <!--<logger name="org.bson" level="WARN"/>-->
     <!--<logger name="org.hibernate.validator" level="WARN"/>-->
-    <!--<logger name="org.springframework" level="WARN"/>-->
-    <!--<logger name="org.springframework.web" level="WARN"/>-->
-    <!--<logger name="org.springframework.security" level="WARN"/>-->
-    <!--<logger name="org.springframework.cache" level="WARN"/>-->
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.springframework.web" level="WARN"/>
+    <logger name="org.springframework.security" level="WARN"/>
+    <logger name="org.springframework.cache" level="WARN"/>
 
     <!--<logger name="org.springframework.core.env.PropertySourcesPropertyResolver" level="INFO"/>-->
 

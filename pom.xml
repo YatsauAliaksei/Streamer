@@ -10,8 +10,11 @@
         <module>StreamerClient</module>
         <module>StreamerServer</module>
         <module>StreamerCommon</module>
+        <module>StreamerTest</module>
     </modules>
+
     <packaging>pom</packaging>
+
     <name>Streamer</name>
 
     <repositories>
@@ -386,6 +389,7 @@
                     <mainClass>${start-class}</mainClass>
                     <executable>true</executable>
                     <fork>true</fork>
+                    <skip>true</skip>
                     <!--
                     Enable the line below to have remote debugging of your application on port 5005
                     <jvmArguments>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005</jvmArguments>
@@ -665,7 +669,7 @@
                 <dependency>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-devtools</artifactId>
-                    <optional>true</optional>
+                    <!--<optional>true</optional>-->
                 </dependency>
             </dependencies>
             <properties>

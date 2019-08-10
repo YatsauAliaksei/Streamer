@@ -1,6 +1,6 @@
 package by.mrj.config;
 
-import by.mrj.aop.logging.LoggingAspect;
+import by.mrj.server.aop.logging.LoggingAspect;
 
 import io.github.jhipster.config.JHipsterConstants;
 

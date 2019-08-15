@@ -9,14 +9,13 @@ import by.mrj.common.domain.Message;
 import by.mrj.common.domain.MessageHeader;
 import by.mrj.common.domain.client.ConnectionInfo;
 import by.mrj.server.config.streamer.StreamerListenerConfiguration;
+import io.reactivex.Single;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -31,12 +30,14 @@ import static org.assertj.core.api.Assertions.assertThat;
         (classes = {
                 StreamerClientConfiguration.class,
                 StreamerListenerConfiguration.class,
-                StreamerBasicConnectionTest.class
-        }, properties = "config/application-dev.yml")
+                StreamerAutoConnectionTest.class
+        }, properties = {
+                "config/application-dev.yml", "spring.main.banner-mode=off"
+        })
 @ActiveProfiles("dev")
 @Configuration
 @ExtendWith(SpringExtension.class)
-public class StreamerBasicConnectionTest {
+public class StreamerAutoConnectionTest {
 
     @Autowired
     private ConnectionManager connectionManager;
@@ -45,32 +46,31 @@ public class StreamerBasicConnectionTest {
     @Value("${streamer.host}")
     private String host; // todo: hosts
 
-    private AtomicInteger userIdIncrementWS = new AtomicInteger();
-
-    @BeforeEach
-    public void before() {
-        ServerChannelHolder serverChannelHolder = connectionManager.autoConnect();
-        log.info("Connection created. [{}]", serverChannelHolder);
-    }
+    private AtomicInteger userIdIncrement = new AtomicInteger();
 
     @Test
-    public void autoConnect() {
+    public void autoConnect() throws InterruptedException {
+        Single<ServerChannelHolder> serverChannelHolderSingle = connectionManager.autoConnect();
+        log.info("Connection created. [{}]", serverChannelHolderSingle.blockingGet());
+
         log.debug("Sending WS Connect message...");
 
-        ServerChannelHolder channel = connectionManager
-                .findChannel(ConnectionInfo.from(ConnectionType.WS, null, host, port));
+        ConnectionInfo connectionInfo = ConnectionInfo.from(ConnectionType.WS, null, host, port);
+
+        ServerChannelHolder channel = connectionManager.findChannel(connectionInfo);
 
         assertThat(channel).isNotNull();
+        assertThat(channel.rawChannel()).isNotNull();
 
         channel.send(
                 Message.<String>builder()
-                        .payload("ws_user" + userIdIncrementWS.incrementAndGet())
+                        .payload("auto_user" + userIdIncrement.incrementAndGet())
                         .build(),
                 MessageHeader
                         .builder()
                         .command(Command.READ)
                         .build());
 
-        channel.closeFutureSync();
+//        channel.closeFutureSync();
     }
 }

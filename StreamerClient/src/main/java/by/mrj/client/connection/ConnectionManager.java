@@ -1,15 +1,18 @@
 package by.mrj.client.connection;
 
 import by.mrj.client.transport.ClientChannelFactory;
+import by.mrj.client.transport.ServerChannel;
 import by.mrj.client.transport.ServerChannelHolder;
 import by.mrj.common.domain.ConnectionType;
 import by.mrj.common.domain.client.ConnectionInfo;
+import io.reactivex.Single;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @RequiredArgsConstructor
 public class ConnectionManager {
 
@@ -22,12 +25,18 @@ public class ConnectionManager {
      * Connection type is automatically chosen.
      * @return - {@link ServerChannelHolder}
      */
-    public ServerChannelHolder autoConnect() {
+    public Single<ServerChannelHolder> autoConnect() {
         ConnectionInfo ci = connectionInfoFactory.get();
+        log.info("Trying to connect using [{}]", ci);
         return connect(ci);
     }
 
-    public ServerChannelHolder connect(ConnectionInfo connectionInfo) {
+    /**
+     * May return not yet initialized channel. Use {@link this#findChannel} instead if guarantee needed.
+     * @param connectionInfo
+     * @return
+     */
+    public Single<ServerChannelHolder> connect(ConnectionInfo connectionInfo) {
 
         ClientChannelFactory clientChannelFactory = typeToFactory.get(connectionInfo.getConnectionType());
         if (!validate(clientChannelFactory)) {
@@ -37,16 +46,30 @@ public class ConnectionManager {
         return createServerChannelHolder(connectionInfo, clientChannelFactory);
     }
 
-    private ServerChannelHolder createServerChannelHolder(ConnectionInfo connectionInfo, ClientChannelFactory clientChannelFactory) {
-        ServerChannelHolder serverChannelHolder = new ServerChannelHolder();
-        serverChannelHolder.createChannel(clientChannelFactory, connectionInfo);
+    private Single<ServerChannelHolder> createServerChannelHolder(ConnectionInfo connectionInfo, ClientChannelFactory clientChannelFactory) {
+        return Single.create(emitter -> {
+            ServerChannelHolder serverChannelHolder = new ServerChannelHolder();
 
-        ServerChannelHolder prevServerChannelHolder;
-        if ((prevServerChannelHolder = connectionToChannel.put(connectionInfo, serverChannelHolder)) != null) {
-            prevServerChannelHolder.getChannel().getChannel().close();
-        }
+            Single<? extends ServerChannel> channelSingle = serverChannelHolder.createChannel(clientChannelFactory, connectionInfo);
 
-        return serverChannelHolder;
+            channelSingle.subscribe(ch -> {
+
+                        ServerChannelHolder prevServerChannelHolder;
+
+                        log.info("Saving connection channel [{}]", ch);
+
+                        if ((prevServerChannelHolder = connectionToChannel.put(connectionInfo, serverChannelHolder)) != null) {
+                            prevServerChannelHolder.closeFutureSync();
+                        }
+                        serverChannelHolder.rawChannel().closeFuture()
+                                .addListener(closeFuture -> connectionToChannel.remove(connectionInfo));
+
+                        emitter.onSuccess(serverChannelHolder);
+                    },
+                    e -> {
+                        throw new RuntimeException(e);
+                    });
+        });
     }
 
     private boolean validate(ClientChannelFactory clientChannelFactory) {

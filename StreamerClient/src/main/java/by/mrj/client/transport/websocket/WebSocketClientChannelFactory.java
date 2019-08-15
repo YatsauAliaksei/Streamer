@@ -1,11 +1,20 @@
 package by.mrj.client.transport.websocket;
 
 import by.mrj.client.transport.ClientChannelFactory;
+import by.mrj.client.transport.ServerChannel;
 import by.mrj.common.domain.ConnectionType;
 import by.mrj.common.domain.client.ConnectionInfo;
 import by.mrj.common.serialization.DataSerializer;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
@@ -41,7 +50,7 @@ public class WebSocketClientChannelFactory implements ClientChannelFactory {
 
     @SneakyThrows
     @Override
-    public by.mrj.client.transport.ServerChannel createChannel(EventLoopGroup group, ConnectionInfo connectionInfo) {
+    public ServerChannel createChannel(EventLoopGroup group, ConnectionInfo connectionInfo) {
 
         final String host = connectionInfo.getHost();
         final Integer port = connectionInfo.getPort();

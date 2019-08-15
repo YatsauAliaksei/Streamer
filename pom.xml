@@ -10,7 +10,6 @@
         <module>StreamerClient</module>
         <module>StreamerServer</module>
         <module>StreamerCommon</module>
-        <module>StreamerTest</module>
         <module>IntegrationTests</module>
     </modules>
 
@@ -147,6 +146,11 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.reactivex.rxjava2</groupId>
+            <artifactId>rxjava</artifactId>
+            <version>2.2.11</version>
         </dependency>
         <dependency>
             <groupId>javax.cache</groupId>

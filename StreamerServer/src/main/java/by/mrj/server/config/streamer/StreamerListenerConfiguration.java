@@ -39,14 +39,11 @@ import java.util.stream.IntStream;
 
 
 @Slf4j
-//@SpringBootApplication
 @Configuration
 @ComponentScan("by.mrj.server")
 @EnableAutoConfiguration
 @EnableConfigurationProperties({ApplicationProperties.class})
 @EnableMBeanExport
-//@EnableConfigurationProperties({ApplicationProperties.class})
-//@EnableMBeanExport
 public class StreamerListenerConfiguration {
 
     @Value("${streamer.port}")

@@ -3,9 +3,12 @@ package by.mrj.client.transport;
 import by.mrj.common.domain.Message;
 import by.mrj.common.domain.MessageHeader;
 import by.mrj.common.domain.client.ConnectionInfo;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.reactivex.Single;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -15,44 +18,78 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @RequiredArgsConstructor
-@ToString(exclude = "closeChannelFuture")
+@ToString//(exclude = "closeChannelFuture")
 public class ServerChannelHolder {
 
     @Getter
-    private ServerChannel channel;
+    private volatile ServerChannel channel;
+    //    @Getter
+//    private ChannelFuture closeChannelFuture;
     @Getter
-    private ChannelFuture closeChannelFuture;
+    private boolean isConnected;
+    @Getter
+    private boolean isClosed; // todo: think about sync
 
-    public void createChannel(ClientChannelFactory clientChannelFactory, ConnectionInfo connectionInfo) {
+    public Single<? extends ServerChannel> createChannel(ClientChannelFactory clientChannelFactory, ConnectionInfo connectionInfo, ChannelFutureListener channelFutureListener) {
 
-        CompletableFuture.runAsync(() -> {
+        if (isClosed) {
+            throw new RuntimeException("Channel holder can't be reused. Create new instead"); // todo: check
+        }
 
-            EventLoopGroup group = new NioEventLoopGroup();
-            try {
-                channel = clientChannelFactory.createChannel(group, connectionInfo);
+        if (channelFutureListener != null) {
+            clientChannelFactory.setHandshakeListener(channelFutureListener);
+        }
 
-                log.info("[{}] connection established.", channel.getChannel());
+        return Single.create(emitter ->
+                CompletableFuture.runAsync(() -> {
+                    ChannelFuture closeChannelFuture = null;
+                    EventLoopGroup group = new NioEventLoopGroup();
 
-                closeChannelFuture = channel.getChannel().closeFuture();
+                    try {
+                        channel = clientChannelFactory.createChannel(group, connectionInfo);
+                        isConnected = true;
 
-                closeChannelFuture.sync();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } finally {
-                group.shutdownGracefully();
+                        emitter.onSuccess(channel);
 
-                if (closeChannelFuture != null && !closeChannelFuture.isDone()) {
-                    closeChannelFuture.cancel(true);
-                }
-            }
-        });
+                        log.info("[{}] connection established.", channel.getChannel());
+
+                        closeChannelFuture = channel.getChannel().closeFuture();
+                        closeChannelFuture.sync();
+
+                    } catch (InterruptedException e) {
+                        emitter.onError(e); // todo:
+                        throw new RuntimeException(e);
+                    } finally {
+                        group.shutdownGracefully();
+
+                        if (closeChannelFuture != null && !closeChannelFuture.isDone()) {
+                            closeChannelFuture.cancel(true);
+                        }
+                        isClosed = true;
+                    }
+                }));
+    }
+
+    public Single<? extends ServerChannel> createChannel(ClientChannelFactory clientChannelFactory, ConnectionInfo connectionInfo) {
+        return createChannel(clientChannelFactory, connectionInfo, null);
+    }
+
+    public Channel rawChannel() {
+        return channel.getChannel();
     }
 
     public void send(Message<?> msg, MessageHeader messageHeader) {
+        if (!isConnected) {
+            log.info("Not connected yet...");
+            return;
+        }
+
         channel.send(msg, messageHeader);
     }
 
     public void closeFutureSync() {
         channel.closeFutureSync();
+        isConnected = false;
+        isClosed = true;
     }
 }

@@ -1,6 +1,5 @@
 package by.mrj;
 
-import by.mrj.server.config.ApplicationProperties;
 import by.mrj.server.config.DefaultProfileUtil;
 import io.github.jhipster.config.JHipsterConstants;
 import lombok.extern.slf4j.Slf4j;
@@ -9,8 +8,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.core.env.Environment;
 
 import java.net.InetAddress;
@@ -20,10 +17,6 @@ import java.util.Collection;
 
 @Slf4j
 @SpringBootApplication
-//@SpringBootConfiguration
-//@ComponentScan(basePackageClasses = StreamerListenerConfiguration.class)
-//@EnableConfigurationProperties({ApplicationProperties.class})
-//@EnableMBeanExport
 public class StreamerServerApp implements InitializingBean {
 
     private final Environment env;

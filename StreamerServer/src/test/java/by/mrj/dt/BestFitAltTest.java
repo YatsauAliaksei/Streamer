@@ -15,13 +15,13 @@ public class BestFitAltTest {
 
     @Test
     public void calculate_general() {
-        List<Fill> fills = generateFills(15);
+        List<Fill> fills = generateFills(40);
         System.out.println("Fills generated.\n" + fills);
 
-        List<Order> orders = generateOrders(3, fills);
+        List<Order> orders = generateOrders(4, fills);
         System.out.println("Orders generated.\n" + orders);
 
-        BestFitAlg bestFitAlg = new BestFitAlg(fills, orders);
+        BestFitAlgDFS bestFitAlg = new BestFitAlgDFS(fills, orders);
         bestFitAlg.calculate();
     }
 

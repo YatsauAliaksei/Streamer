@@ -44,7 +44,7 @@ public class BestFitAlg {
         BigDecimal min = null;
         for (Node node : decisionTree.terminalNodes) {
             BigDecimal variance = calculateVariance(node, avgFillPrice);
-//            log.debug("Fill: {}, Order: {}, Price: {}, Variance: {}", node.fillId, node.orderId, node.price, variance);
+            log.debug("Fill: {}, Order: {}, Price: {}, Variance: {}", node.fillId, node.orderId, node.price, variance);
 
             if (min == null) {
                 min = variance;

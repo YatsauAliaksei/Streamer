@@ -9,7 +9,7 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
-@ToString
+@ToString(exclude = "allocations")
 public class Order {
 
     private String orderId;

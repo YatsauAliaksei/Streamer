@@ -9,7 +9,7 @@ import java.util.Date;
 
 @Getter
 @AllArgsConstructor
-@ToString
+@ToString(exclude = {"lots", "timestamp"})
 public class Fill {
 
     private int fillId;

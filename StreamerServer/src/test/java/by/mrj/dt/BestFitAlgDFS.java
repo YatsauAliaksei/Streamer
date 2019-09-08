@@ -3,18 +3,17 @@ package by.mrj.dt;
 import com.google.common.collect.Lists;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
-import java.util.Random;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
@@ -40,12 +39,6 @@ public class BestFitAlgDFS {
         Map<String, BigDecimal> orderToAvgPrice = orderToAvgPrice(leaves);
         orderToAvgPrice.forEach((id, avg) -> log.info("Order: [{}] - {}", id, avg));
 
-//        leaves.forEach(leaf -> {
-//            log.info("Winner. Fill: {}, Order: {}, Price: {}",
-//                    leaf.fill.getFillId(),
-//                    leaf.order.getOrderId(), leaf.fill.getPrice());
-//        });
-
         log.info("Time: {}", TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
     }
 
@@ -66,31 +59,35 @@ public class BestFitAlgDFS {
         Stack<Leaf> stackIn = new Stack<>();
         BigDecimal avgFillPrice = avgFillPrice();
 
+        log.info("Avg price [{}]", avgFillPrice.toPlainString());
+
         List<Leaf> minVList = new ArrayList<>();
         BigDecimal minVariance = null;
 
         int maxCalculations = 1_000_000;
         int totalTerminalWays = 0;
-        LinkedList<String> l = new LinkedList<>();
-        ListIterator<String> li = l.listIterator();
 
-        Random random = new Random();
+        orders.sort(Comparator.comparing(Order::getTotalLots));
+        fills.sort(Comparator.comparing(f -> f.getPrice().subtract(avgFillPrice).pow(2)));
 
-//        fills.sort(Comparator.comparing(Fill::getPrice));
+        log.info("Orders sorted: [{}]", orders);
 
-        BigDecimal minPrice = fills.get(0).getPrice();
-        BigDecimal maxPrice = fills.get(fills.size() - 1).getPrice();
-//        fills.sort((o1, o2) -> o1.getPrice().compareTo(o2.getPrice()) * -1);
+        log.info("Min delta from avg: [{}]", fills.get(0).getPrice());
+        log.info("Max delta from avg: [{}]", fills.get(fills.size() - 1).getPrice());
+
         totally:
         for (int i = 0; i < orders.size(); i++) {
             Map<String, Integer> orderIdToLotsCopy = new HashMap<>(orderToLots);
             Map<Integer, Integer> fillToOrderIndex = new HashMap<>(fills.size());
-//            Map<Integer, Integer> memmory = new HashMap<>(fills.size());
+            Map<Integer, Integer> fillToOrderIndexInitial = new HashMap<>(fills.size());
 
             int fillIndex = 0;
 
             Fill f = fills.get(fillIndex++);
-            stackIn.add(createLeaf(orderIdToLotsCopy, orders.get(i), f));
+            Leaf leaf = createLeaf(orderIdToLotsCopy, orders.get(i), f);
+            stackIn.add(leaf);
+            log.info("Initial. I [{}]. Leaf created [{}]", i, leaf);
+
             fillToOrderIndex.put(f.getFillId(), i);
 
             while (!stackIn.isEmpty()) {
@@ -98,30 +95,58 @@ public class BestFitAlgDFS {
                 Fill fill = fills.get(fillIndex);
                 int fillId = fill.getFillId();
 
+                log.debug("Processing fill. Index [{}], Fill [{}]", fillIndex, fill);
+
                 Integer ordLocalIndex = fillToOrderIndex.get(fillId);
                 if (ordLocalIndex == null) {
-                    ordLocalIndex = -1;
+                    ordLocalIndex = 0;
+
+                    if (fillIndex > 0 && fillIndex < fills.size()) { // excluding final leafs
+                        Fill prevFill = fills.get(fillIndex - 1);
+                        Integer prevIndex = fillToOrderIndex.get(prevFill.getFillId());
+
+                        log.debug("Previous H index [{}]", prevIndex);
+
+                        ordLocalIndex = nextHIndex(prevIndex);
+                    }
+                    fillToOrderIndexInitial.put(fillId, ordLocalIndex);
+                } else if ((++ordLocalIndex).equals(fillToOrderIndexInitial.get(fillId))) {
+                    ordLocalIndex = Integer.MAX_VALUE;
+                    log.debug("Skipping FI: [{}]", fillIndex);
                 }
 
                 Leaf nextLeaf = null;
-                while (++ordLocalIndex < orders.size()) {
+                while (ordLocalIndex < orders.size()) {
+
+                    log.debug("Next H index [{}]", ordLocalIndex);
                     fillToOrderIndex.put(fillId, ordLocalIndex);
-//                    memmory.put(fillId, ordLocalIndex);
 
                     Order order = orders.get(ordLocalIndex);
 
                     nextLeaf = createLeaf(orderIdToLotsCopy, order, fill);
+
+                    int nextIndex;
                     if (nextLeaf != null) { // going down
+                        log.debug("Down. Leaf created [{}]", nextLeaf);
                         stackIn.add(nextLeaf);
                         fillIndex++;
                         break;
+                    } else if (fillToOrderIndexInitial.get(fillId).equals(nextIndex = nextHIndex(ordLocalIndex))) {
+                        log.debug("H finished. FI: [{}], LI: [{}], N: [{}]", fillIndex, ordLocalIndex, nextIndex);
+                        break;
                     }
+
+                    ordLocalIndex = nextIndex;
                 }
 
-                if (nextLeaf == null) { // horizontal move finished
+                if (nextLeaf == null) { // horizontal move finished. Going Up
                     oneStepUp(stackIn, orderIdToLotsCopy);
                     fillToOrderIndex.remove(fillId);
+                    fillToOrderIndexInitial.remove(fillId);
+
                     fillIndex--;
+
+                    log.debug("Up. Fill index [{}]", fillIndex);
 
                     continue;
                 }
@@ -129,8 +154,11 @@ public class BestFitAlgDFS {
                 if (stackIn.size() == fills.size()) { // terminal node found...
                     totalTerminalWays++;
 
-                    if (!orderIdToLotsCopy.isEmpty())
+                    if (!orderIdToLotsCopy.isEmpty()) {
+
+                        log.info("Orders left: [{}]", orderIdToLotsCopy);
                         throw new IllegalStateException("Should be empty");
+                    }
 
                     Map<String, BigDecimal> orderToAvg = orderToAvgPrice(stackIn);
 
@@ -146,6 +174,7 @@ public class BestFitAlgDFS {
 
                         log.info("V: {}", variance.toPlainString());
                     }
+//                    log.info("V: {}", variance.toPlainString());
 
                     if (--maxCalculations == 0) {
                         log.info("Calculations limit reached. Stopping..");
@@ -158,38 +187,23 @@ public class BestFitAlgDFS {
                         break totally;
                     }
 
-/*                    orders.sort((o1, o2) -> {
-                        String orderId1 = o1.getOrderId();
-                        String orderId2 = o2.getOrderId();
-
-                        BigDecimal mes1 = orderToAvg.get(orderId1).subtract(avgFillPrice);
-                        BigDecimal mes2 = orderToAvg.get(orderId2).subtract(avgFillPrice);
-
-                        return mes1.compareTo(mes2);
-
-                    });*/
-
-//                    int p = punishment(minVariance.doubleValue());
-//                    p = p > stackIn.size() ?
-//                    log.info("Punishing level [{}]", p);
-//                    for (int s = 0; s < p; s++) {
-                    Fill movedUpFill = oneStepUp(stackIn, orderIdToLotsCopy);
-//                        fillToOrderIndex.remove(movedUpFill.getFillId());
-
+                    oneStepUp(stackIn, orderIdToLotsCopy);
                     fillIndex--;
-//                    }
                 }
             }
         }
 
         log.info("Total terminal ways found [{}]", totalTerminalWays);
+        if (minVariance == null) {
+            System.out.println("");
+        }
         log.info("Winner variance: {}", minVariance.toPlainString());
 
         return minVList;
     }
 
-    private int punishment(double k) {
-        return (int) (fills.size() * k);
+    private int nextHIndex(int currentIndex) {
+        return currentIndex + 1 < orders.size() ? currentIndex + 1 : 0;
     }
 
     private Fill oneStepUp(Stack<Leaf> stackIn, Map<String, Integer> orderIdToLotsCopy) {
@@ -199,14 +213,14 @@ public class BestFitAlgDFS {
         return lUp.fill;
     }
 
-    private Leaf createLeaf(Map<String, Integer> map, Order order, Fill fill) {
+    private Leaf createLeaf(Map<String, Integer> orderIdToLeftLots, Order order, Fill fill) {
         String key = order.getOrderId();
-        Integer v = map.get(key);
+        Integer v = orderIdToLeftLots.get(key);
         if (v != null) {
             if (--v > 0) {
-                map.put(key, v);
+                orderIdToLeftLots.put(key, v);
             } else
-                map.remove(key);
+                orderIdToLeftLots.remove(key);
         } else
             return null;
 
@@ -243,6 +257,7 @@ public class BestFitAlgDFS {
     }
 
     @AllArgsConstructor
+    @ToString
     private class Leaf {
         Order order;
         Fill fill;

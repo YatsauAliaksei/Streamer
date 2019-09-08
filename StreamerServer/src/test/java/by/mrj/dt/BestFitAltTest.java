@@ -1,5 +1,6 @@
 package by.mrj.dt;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -11,18 +12,31 @@ import java.util.stream.IntStream;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Slf4j
 public class BestFitAltTest {
 
     @Test
     public void calculate_general() {
-        List<Fill> fills = generateFills(40);
+        List<Fill> fills = generateFills(30);
         System.out.println("Fills generated.\n" + fills);
 
         List<Order> orders = generateOrders(4, fills);
         System.out.println("Orders generated.\n" + orders);
 
-        BestFitAlgDFS bestFitAlg = new BestFitAlgDFS(fills, orders);
-        bestFitAlg.calculate();
+//        : {0=1, 1=2, 2=6, 3=1}
+//        orders.get(0).setTotalLots(8);
+//        orders.get(1).setTotalLots(2);
+//        orders.get(2).setTotalLots(4);
+//        orders.get(3).setTotalLots(1);
+
+        BestFitAlgDFS bestFitAlgDfs = new BestFitAlgDFS(fills, orders);
+        bestFitAlgDfs.calculate();
+
+//        log.info("===============================");
+//        log.info("===============================");
+
+//        BestFitAlg bestFitAlg = new BestFitAlg(fills, orders);
+//        bestFitAlg.calculate();
     }
 
     private List<Order> generateOrders(int number, List<Fill> fills) {

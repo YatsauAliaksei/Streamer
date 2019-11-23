@@ -1,4 +1,4 @@
-package by.mrj.client.transport.websocket.server;
+package by.mrj.server.transport.websocket.server;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

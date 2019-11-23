@@ -1,19 +1,18 @@
 package by.mrj.server.transport.http;
 
+import by.mrj.common.domain.Command;
 import by.mrj.common.domain.ConnectionType;
+import by.mrj.common.domain.client.channel.ClientChannel;
 import by.mrj.common.domain.client.channel.HttpStreamingChannel;
 import by.mrj.common.domain.client.channel.LongPollingClientChannel;
 import by.mrj.common.serialization.DataSerializer;
 import by.mrj.common.transport.converter.MessageChannelConverter;
 import by.mrj.server.controller.CommandListener;
-import by.mrj.domain.client.channel.ClientChannel;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.util.CharsetUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,15 +33,16 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
             return; // todo: check ValidationHandler. Is this needed?
         }
 
-        req.headers().get(HttpHeaderNames.AUTHORIZATION);
+//        req.headers().get(HttpHeaderNames.AUTHORIZATION);
 
-        int headerSize = content.readInt();
-        String header = content.readCharSequence(headerSize, CharsetUtil.UTF_8).toString();
-        String body = content.readCharSequence(content.readableBytes(), CharsetUtil.UTF_8).toString();
+        int commandOrdinal = content.readInt();
+        Command command = Command.byOrdinal(commandOrdinal);
+//        String header = content.readCharSequence(headerSize, CharsetUtil.UTF_8).toString();
+//        String payload = content.readCharSequence(content.readableBytes(), CharsetUtil.UTF_8).toString();
 
         ClientChannel streamChannel = createStreamChannel(ctx, req);
 
-        commandListener.processRequest(header, body, streamChannel);
+        commandListener.processRequest(command, content, streamChannel);
     }
 
     private ClientChannel createStreamChannel(ChannelHandlerContext ctx, FullHttpRequest req) {

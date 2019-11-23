@@ -33,7 +33,7 @@ public class UserJWTController {
         this.authenticationManagerBuilder = authenticationManagerBuilder;
     }
 
-    @PostMapping("/authenticate")
+    @PostMapping("/authorize")
     public ResponseEntity<JWTToken> authorize(@Valid @RequestBody LoginVM loginVM) {
 
         UsernamePasswordAuthenticationToken authenticationToken =
@@ -49,7 +49,7 @@ public class UserJWTController {
     }
 
     /**
-     * Object to return as body in JWT Authentication.
+     * Object to return as payload in JWT Authentication.
      */
     static class JWTToken {
 

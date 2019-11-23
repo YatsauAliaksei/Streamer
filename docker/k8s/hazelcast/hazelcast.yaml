@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hz
+  labels:
+    app: hz
+
+spec:
+  replicas: 2
+  selector:
+      matchLabels:
+        app: hz
+  template:
+    metadata:
+      labels:
+        app: hz
+    spec:
+      containers:
+      - name: hz-container
+        image: hazelcast/hazelcast:3.12
+        ports:
+        - containerPort: 5701
+        env:
+        - name: JAVA_OPTS
+          value:
+#             -Dhazelcast.mancenter.enabled=true
+             -Dhazelcast.config=/configFolder/hazelcast.yml
+        volumeMounts:
+          - mountPath: "/configFolder"
+            name: config-storage
+
+      volumes:
+        - name: config-storage
+          persistentVolumeClaim:
+             claimName: hz-claim

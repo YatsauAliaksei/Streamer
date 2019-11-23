@@ -26,7 +26,7 @@
         <appender-ref ref="ASYNC"/>
     </root>
 -->
-    <logger name="by.mrj" level="INFO"/>
+    <logger name="by.mrj" level="info"/>
 
     <logger name="com.ning.http.client" level="WARN"/>
     <logger name="io.netty" level="WARN"/>
@@ -36,7 +36,7 @@
     <logger name="javax.xml.bind" level="WARN"/>
     <logger name="ch.qos.logback" level="WARN"/>
     
-    <logger name="com.hazelcast" level="INFO"/>
+    <logger name="com.hazelcast" level="debug"/>
     <logger name="com.ryantenney" level="WARN"/>
     <logger name="com.sun" level="WARN"/>
     <logger name="com.zaxxer" level="WARN"/>

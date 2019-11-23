@@ -1,0 +1,55 @@
+version: '3'
+
+services:
+# streamer-hazelcast-management-center:
+#   image: hazelcast/management-center:3.12
+#   ports:
+#     - 8080:8080
+#   deploy:
+#         replicas: 1
+#         restart_policy:
+#           condition: on-failure
+#         resources:
+#           limits:
+#             cpus: "0.1"
+#             memory: 200M
+#   networks:
+#     - webnet
+
+  streamer-hazelcast:
+    image: hazelcast/hazelcast:3.12
+    ports:
+      - 5701:5701
+      - 54327:54327
+    networks:
+      - hz-net
+    environment:
+#     - JAVA_OPTS= -Dhazelcast.local.publicAddress=127.0.0.1:5701
+      - JAVA_OPTS=-Djava.net.preferIPv4Stack=true -Dhazelcast.config=/configFolder/hazelcast-old.xml
+       -Dhazelcast.mancenter.url=http://127.0.0.1:8080/hazelcast-mancenter -Dgroup.name=hz-compose -Dgroup.password=s3crEt
+    deploy:
+          replicas: 1
+          restart_policy:
+            condition: on-failure
+#         resources:
+#           limits:
+#             cpus: "0.3"
+#             memory: 500M
+    volumes:
+      - ./resources:/configFolder
+
+
+networks:
+  hz-net:
+#   ports:
+#     - 5701:5701
+#   environment:
+#     - JAVA_OPTS= -Dhazelcast.local.publicAddress=localhost:5701
+#   deploy:
+#         replicas: 1
+#         restart_policy:
+#           condition: on-failure
+#         resources:
+#           limits:
+#             cpus: "0.3"
+#             memory: 500M

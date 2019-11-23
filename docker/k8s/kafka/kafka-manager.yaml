@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-man
+  labels:
+    app: kafka-man
+
+spec:
+  replicas: 1
+  selector:
+      matchLabels:
+        app: kafka-man
+  template:
+    metadata:
+      labels:
+        app: kafka-man
+    spec:
+      containers:
+      - name: kafka-man-container
+        image: kafkamanager/kafka-manager
+        ports:
+        - containerPort: 9000
+        env:
+        - name: ZK_HOSTS
+          value: zoo-service:2181

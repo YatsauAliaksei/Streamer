@@ -17,7 +17,7 @@ logging:
   level:
     ROOT: DEBUG
     io.github.jhipster: DEBUG
-    by.mrj: DEBUG
+    by.mrj: INFO
 
 spring:
   profiles:
@@ -64,9 +64,9 @@ jhipster:
       time-to-live-seconds: 3600
       backup-count: 1
       management-center: # Full reference is available at: http://docs.hazelcast.org/docs/management-center/3.9/manual/html/Deploying_and_Starting.html
-        enabled: false
+        enabled: true
         update-interval: 3
-        url: http://localhost:8180/mancenter
+        url: http://localhost:8080/hazelcast-mancenter
   # CORS is only enabled by default with the "dev" profile, so BrowserSync can access the API
   cors:
     allowed-origins: '*'
@@ -113,6 +113,10 @@ streamer:
   host: 127.0.0.1
   ssl: false
   rmi.enabled: true
+  kafka:
+    url: localhost
+    port: 9092
+    client.Id: main
 
 
 management:

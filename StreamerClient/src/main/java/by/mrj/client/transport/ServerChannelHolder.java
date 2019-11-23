@@ -3,6 +3,7 @@ package by.mrj.client.transport;
 import by.mrj.common.domain.Message;
 import by.mrj.common.domain.MessageHeader;
 import by.mrj.common.domain.client.ConnectionInfo;
+import by.mrj.common.domain.data.BaseObject;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -78,13 +80,22 @@ public class ServerChannelHolder {
         return channel.getChannel();
     }
 
-    public void send(Message<?> msg, MessageHeader messageHeader) {
+    public ChannelFuture send(Message<?> msg, MessageHeader messageHeader) {
         if (!isConnected) {
             log.info("Not connected yet...");
-            return;
+            return channel.getChannel().newSucceededFuture();
         }
 
-        channel.send(msg, messageHeader);
+        return channel.send(msg, messageHeader);
+    }
+
+    public ChannelFuture send(List<BaseObject> postData) {
+        if (!isConnected) {
+            log.info("Not connected yet...");
+            return channel.getChannel().newSucceededFuture();
+        }
+
+        return channel.send(postData);
     }
 
     public void closeFutureSync() {

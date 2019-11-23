@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zoo
+  labels:
+    app: zoo
+
+spec:
+  replicas: 1
+  selector:
+      matchLabels:
+        app: zoo
+  template:
+    metadata:
+      labels:
+        app: zoo
+    spec:
+      containers:
+      - name: zoo-container
+        image: zookeeper
+        ports:
+        - containerPort: 2181

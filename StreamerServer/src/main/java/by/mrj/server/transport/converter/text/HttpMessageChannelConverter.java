@@ -1,13 +1,15 @@
 package by.mrj.server.transport.converter.text;
 
-import by.mrj.common.domain.Command;
-import by.mrj.common.domain.Message;
-import by.mrj.common.domain.MessageHeader;
-import by.mrj.common.serialization.DataSerializer;
 import by.mrj.common.transport.converter.MessageChannelConverter;
 import by.mrj.common.utils.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpUtil;
+import io.netty.handler.codec.http.HttpVersion;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,20 +19,12 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class HttpMessageChannelConverter implements MessageChannelConverter<FullHttpResponse> {
 
-    private final DataSerializer dataSerializer;
-
     @Override
     public FullHttpResponse convert(String dataToSend) {
 
         log.debug("Sending data [{}]", dataToSend);
 
-        ByteBuf msgBuf = ByteBufUtils.create(dataSerializer,
-                MessageHeader.builder()
-                        .command(Command.POST)
-                        .build(),
-                Message.<String>builder()
-                        .payload(dataToSend)
-                        .build());
+        ByteBuf msgBuf = ByteBufUtils.create(dataToSend);
         return this.convert(msgBuf);
     }
 

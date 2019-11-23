@@ -84,7 +84,7 @@ public class JsonJackson implements DataDeserializer, DataSerializer {
     }
 
     @Override
-    public String serialize(Serializable obj) {
+    public String serialize(Object obj) {
         return toJson(obj);
     }
 }

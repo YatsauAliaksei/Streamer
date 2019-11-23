@@ -1,4 +1,4 @@
-package by.mrj.security;
+package by.mrj.server.security;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

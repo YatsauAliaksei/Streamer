@@ -1,0 +1,9 @@
+hazelcast:
+  management-center:
+      enabled: true
+      scripting-enabled: false
+      update-interval: 2
+      url: http://hz-man:8080/hazelcast-mancenter
+  group:
+    name: hz-group
+

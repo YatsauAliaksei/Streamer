@@ -1,9 +1,11 @@
 package by.mrj.server.controller;
 
 
+import by.mrj.common.domain.Command;
 import by.mrj.common.domain.Point;
 import by.mrj.common.domain.client.DataClient;
-import by.mrj.domain.client.channel.ClientChannel;
+import by.mrj.common.domain.client.channel.ClientChannel;
+import io.netty.buffer.ByteBuf;
 
 import java.util.List;
 
@@ -15,7 +17,7 @@ public interface CommandListener {
      */
 //    void listen();
 
-    void processRequest(String msgHeader, Object msgBody, ClientChannel streamChannel);
+    void processRequest(Command command, ByteBuf msgBody, ClientChannel streamChannel);
 
     /**
      * Authenticated client registration

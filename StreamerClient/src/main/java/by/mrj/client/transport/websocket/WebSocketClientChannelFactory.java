@@ -58,7 +58,9 @@ public class WebSocketClientChannelFactory implements ClientChannelFactory {
 
         // todo: https
         WebSocketClientHandshaker wsHandshaker =
-                getWebSocketClientHandshaker(new URI("http://" + host + ":" + port + "/" + ConnectionType.WS.getUri()));
+                getWebSocketClientHandshaker(new URI("http://" + host + ":" + port + "/" + ConnectionType.WS.getUri())
+                        , connectionInfo.getLogin());
+
         WebSocketCompleteClientHandler webSocketCompleteClientHandler = new WebSocketCompleteClientHandler(wsHandshaker);
 
         Bootstrap b = new Bootstrap();
@@ -114,10 +116,10 @@ public class WebSocketClientChannelFactory implements ClientChannelFactory {
     // Connect with V13 (RFC 6455 aka HyBi-17). You can change it to V08 or V00.
     // If you change it to V00, ping is not supported and remember to change
     // HttpResponseDecoder to WebSocketHttpResponseDecoder in the pipeline.
-    private WebSocketClientHandshaker getWebSocketClientHandshaker(URI uri) {
+    private WebSocketClientHandshaker getWebSocketClientHandshaker(URI uri, String login) {
         return WebSocketClientHandshakerFactory.newHandshaker(
                 uri, WebSocketVersion.V13, null, true, new DefaultHttpHeaders()
-                                .add(HttpHeaderNames.AUTHORIZATION, "Basic my:password")
+                                .add(HttpHeaderNames.AUTHORIZATION, "Basic " + login + ":my-password")
         );
     }
 }

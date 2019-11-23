@@ -7,9 +7,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-public class JavaDataSerializer implements DataSerializer {
+public class JavaDataSerializer { //  implements DataSerializer {
 
-    @Override
+//    @Override
     @SneakyThrows
     public byte[] serialize(Serializable obj) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();

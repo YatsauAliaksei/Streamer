@@ -1,4 +1,4 @@
-package by.mrj.client.transport.websocket.server;
+package by.mrj.server.transport.websocket.server;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -11,7 +11,7 @@ public class WebSocketServerIndexPage {
     public static ByteBuf getContent(String webSocketLocation) {
         return Unpooled.copiedBuffer(
                 "<html><head><title>Web Socket Test</title></head>" + NEWLINE +
-                        "<body>" + NEWLINE +
+                        "<payload>" + NEWLINE +
                         "<script type=\"text/javascript\">" + NEWLINE +
                         "var socket;" + NEWLINE +
                         "if (!window.WebSocket) {" + NEWLINE +
@@ -51,7 +51,7 @@ public class WebSocketServerIndexPage {
                         "<h3>Output</h3>" + NEWLINE +
                         "<textarea id=\"responseText\" style=\"width:500px;height:300px;\"></textarea>" + NEWLINE +
                         "</form>" + NEWLINE +
-                        "</body>" + NEWLINE +
+                        "</payload>" + NEWLINE +
                         "</html>" + NEWLINE, CharsetUtil.US_ASCII);
     }
 

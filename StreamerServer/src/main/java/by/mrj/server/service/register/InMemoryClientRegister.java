@@ -1,6 +1,8 @@
 package by.mrj.server.service.register;
 
 import by.mrj.common.domain.client.DataClient;
+import com.hazelcast.client.HazelcastClient;
+import com.hazelcast.core.HazelcastInstance;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,7 +22,7 @@ public class InMemoryClientRegister implements ClientRegister {
 
     @Override
     public void register(DataClient dataClient) {
-        if (register.put(dataClient.getLoginName(), dataClient) == null) {
+        if (register.put(dataClient.getId(), dataClient) == null) {
             log.debug("New client registration [{}]", dataClient);
 
             for (NewClientRegistrationListener registrationListener : clientRegistrationListener) {

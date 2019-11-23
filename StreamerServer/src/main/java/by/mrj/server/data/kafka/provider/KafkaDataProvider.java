@@ -1,45 +1,36 @@
 package by.mrj.server.data.kafka.provider;
 
-import by.mrj.common.domain.Command;
-import by.mrj.common.domain.Message;
-import by.mrj.common.domain.MessageHeader;
+import by.mrj.common.domain.data.BaseObject;
 import by.mrj.common.domain.streamer.Topic;
-import by.mrj.common.serialization.DataSerializer;
-import by.mrj.common.serialization.json.JsonJackson;
-import by.mrj.common.utils.ByteBufUtils;
 import by.mrj.server.data.DataProvider;
-import io.netty.buffer.ByteBuf;
+import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.TopicPartition;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 // TODO: Seems Kafka doesn't feet to our needs as we need to have possibility to modify message
-@Component
+//@Component
 @RequiredArgsConstructor
-public class KafkaDataProvider implements DataProvider<ByteBuf> {
+public class KafkaDataProvider {
 
-    // todo: tmp solution
-    private final DataSerializer dataSerializer;
-    // todo: remove
-    private List<ByteBuf> testData = createTestData(10);
+    private final KafkaProducer<String, String> producer;
+    private final KafkaConsumer<String, String> consumer;
+
+/*    @Override
+    public List<BaseObject> getAllForUser(Topic topic) {
+        consumer.seek(new TopicPartition("", 1), 10);
+    }
 
     @Override
-    public List<ByteBuf> getAll(Topic topic) {
-        return testData;
-    }
-
-    // todo: remove
-    private List<ByteBuf> createTestData(int size) {
-        DataSerializer serializer = new JsonJackson();
-        return IntStream.range(0, size).boxed()
-                .map(i -> ByteBufUtils.create(serializer,
-                        MessageHeader.builder()
-                                .command(Command.POST)
-                                .build(),
-                        Message.<String>builder().payload("Msg-" + i).build())
-                ).collect(Collectors.toList());
-    }
+    public void putAll(Topic topic, List<BaseObject> baseObjects) {
+        for (BaseObject baseObject : baseObjects) {
+            producer.send(new ProducerRecord<>(topic.getName(), baseObject.getUuid(), baseObject.getPayload()));
+        }
+    }*/
 }

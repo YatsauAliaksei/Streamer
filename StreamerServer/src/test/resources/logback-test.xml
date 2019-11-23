@@ -16,7 +16,7 @@
         <appender-ref ref="CONSOLE"/>
     </appender>
 
-    <logger name="by.mrj" level="DEBUG"/>
+    <logger name="by.mrj" level="info"/>
     <logger name="ch.qos.logback" level="INFO"/>
     <logger name="io.netty" level="DEBUG"/>
 

@@ -15,6 +15,6 @@ public class WebSocketClientTextHandler extends SimpleChannelInboundHandler<Text
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame frame) throws Exception {
-        log.debug("WebSocket Client received message: " + frame.text());
+        log.info("WebSocket Client received message: " + frame.text());
     }
 }

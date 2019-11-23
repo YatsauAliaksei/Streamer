@@ -17,6 +17,21 @@ class JsonJacksonTest {
     }
 
     @Test
+    void deserializeList() {
+/*        List<GenericTopic> payload = Lists.newArrayList(
+                GenericTopic.builder().name("topic_name1").build(),
+                GenericTopic.builder().name("topic_name2").build());
+
+        String incomeMsg = jackson.serialize(Message.<List<GenericTopic>>builder()
+                .payload(payload)
+                .build());
+
+        Message<GenericTopic[]> msg = jackson.deserializeMessage(incomeMsg, GenericTopic[].class);*/
+
+//        System.out.println(msg);
+    }
+
+    @Test
     void serialize() {
     }
 }

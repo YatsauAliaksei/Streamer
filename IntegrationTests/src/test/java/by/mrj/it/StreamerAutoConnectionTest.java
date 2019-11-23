@@ -3,12 +3,11 @@ package by.mrj.it;
 import by.mrj.client.config.streamer.StreamerClientConfiguration;
 import by.mrj.client.connection.ConnectionManager;
 import by.mrj.client.transport.ServerChannelHolder;
-import by.mrj.common.domain.Command;
 import by.mrj.common.domain.ConnectionType;
-import by.mrj.common.domain.Message;
-import by.mrj.common.domain.MessageHeader;
 import by.mrj.common.domain.client.ConnectionInfo;
+import by.mrj.common.utils.DataUtils;
 import by.mrj.server.config.streamer.StreamerListenerConfiguration;
+import com.google.common.collect.Lists;
 import io.reactivex.Single;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -49,28 +48,35 @@ public class StreamerAutoConnectionTest {
     private AtomicInteger userIdIncrement = new AtomicInteger();
 
     @Test
-    public void autoConnect() throws InterruptedException {
+    public void autoConnect() {
         Single<ServerChannelHolder> serverChannelHolderSingle = connectionManager.autoConnect();
         log.info("Connection created. [{}]", serverChannelHolderSingle.blockingGet());
 
-        log.debug("Sending WS Connect message...");
+        ConnectionType connectionType = ConnectionType.WS;
+        log.debug("Sending {} Connect message...", connectionType);
 
-        ConnectionInfo connectionInfo = ConnectionInfo.from(ConnectionType.WS, null, host, port);
+        ConnectionInfo connectionInfo = ConnectionInfo.from(connectionType, null, host, port);
 
         ServerChannelHolder channel = connectionManager.findChannel(connectionInfo);
 
         assertThat(channel).isNotNull();
         assertThat(channel.rawChannel()).isNotNull();
 
-        channel.send(
+/*        channel.send(
                 Message.<String>builder()
                         .payload("auto_user" + userIdIncrement.incrementAndGet())
                         .build(),
                 MessageHeader
                         .builder()
-                        .command(Command.READ)
-                        .build());
+                        .command(Command.READ_SPECIFIC)
+                        .build());*/
+        channel.send(Lists.newArrayList(
+                DataUtils.createNewData("topicName", "UU-ID", BasicData.builder()
+                        .id(0)
+                        .name("base")
+                        .uuid("UU-ID")
+                        .build())));
 
-//        channel.closeFutureSync();
+        channel.closeFutureSync();
     }
 }

@@ -1,27 +1,25 @@
-package by.mrj.config;
+package by.mrj.server.config.streamer;
 
+import com.hazelcast.config.Config;
+import com.hazelcast.config.EvictionPolicy;
+import com.hazelcast.config.ManagementCenterConfig;
+import com.hazelcast.config.MapConfig;
+import com.hazelcast.config.MaxSizeConfig;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.ICacheManager;
 import io.github.jhipster.config.JHipsterConstants;
 import io.github.jhipster.config.JHipsterProperties;
-
-import com.hazelcast.config.*;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.Hazelcast;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.context.annotation.*;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 
-@Configuration
-@EnableCaching
+//@Configuration
+@Log4j2
+//@EnableCaching
 public class CacheConfiguration implements DisposableBean {
-
-    private final Logger log = LoggerFactory.getLogger(CacheConfiguration.class);
 
     private final Environment env;
 
@@ -35,20 +33,30 @@ public class CacheConfiguration implements DisposableBean {
         Hazelcast.shutdownAll();
     }
 
-    @Bean
+/*    @Bean
     public CacheManager cacheManager(HazelcastInstance hazelcastInstance) {
-        log.debug("Starting HazelcastCacheManager");
-        return new com.hazelcast.spring.cache.HazelcastCacheManager(hazelcastInstance);
+        log.info("Starting HazelcastCacheManager");
+        return new HazelcastCacheManager(hazelcastInstance);
+    }*/
+
+    @Bean
+    public ICacheManager cacheManager(HazelcastInstance hazelcastInstance) {
+        log.info("Starting HazelcastCacheManager");
+
+        return hazelcastInstance.getCacheManager();
     }
 
     @Bean
     public HazelcastInstance hazelcastInstance(JHipsterProperties jHipsterProperties) {
-        log.debug("Configuring Hazelcast");
+        log.info("Configuring Hazelcast");
+
         HazelcastInstance hazelCastInstance = Hazelcast.getHazelcastInstanceByName("Streamer");
         if (hazelCastInstance != null) {
-            log.debug("Hazelcast already initialized");
+            log.info("Hazelcast already initialized");
+
             return hazelCastInstance;
         }
+
         Config config = new Config();
         config.setInstanceName("Streamer");
         config.getNetworkConfig().setPort(5701);
@@ -56,6 +64,8 @@ public class CacheConfiguration implements DisposableBean {
 
         // In development, remove multicast auto-configuration
         if (env.acceptsProfiles(Profiles.of(JHipsterConstants.SPRING_PROFILE_DEVELOPMENT))) {
+            log.info("Hazelcast DEV local run...");
+
             System.setProperty("hazelcast.local.localAddress", "127.0.0.1");
 
             config.getNetworkConfig().getJoin().getAwsConfig().setEnabled(false);
@@ -65,7 +75,9 @@ public class CacheConfiguration implements DisposableBean {
         config.getMapConfigs().put("default", initializeDefaultMapConfig(jHipsterProperties));
 
         // Full reference is available at: http://docs.hazelcast.org/docs/management-center/3.9/manual/html/Deploying_and_Starting.html
-        config.setManagementCenterConfig(initializeDefaultManagementCenterConfig(jHipsterProperties));
+        ManagementCenterConfig managementCenterConfig = initializeDefaultManagementCenterConfig(jHipsterProperties);
+        config.setManagementCenterConfig(managementCenterConfig);
+
         return Hazelcast.newHazelcastInstance(config);
     }
 

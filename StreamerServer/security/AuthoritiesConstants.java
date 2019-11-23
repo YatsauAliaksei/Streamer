@@ -1,4 +1,4 @@
-package by.mrj.security;
+package by.mrj.server.security;
 
 /**
  * Constants for Spring Security authorities.

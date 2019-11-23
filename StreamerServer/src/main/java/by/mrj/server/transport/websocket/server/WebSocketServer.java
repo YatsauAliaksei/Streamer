@@ -1,4 +1,4 @@
-package by.mrj.client.transport.websocket.server;
+package by.mrj.server.transport.websocket.server;
 
 import by.mrj.client.transport.PortListener;
 import io.netty.bootstrap.ServerBootstrap;

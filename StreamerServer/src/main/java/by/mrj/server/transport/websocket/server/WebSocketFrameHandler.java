@@ -1,5 +1,6 @@
 package by.mrj.server.transport.websocket.server;
 
+import by.mrj.common.domain.Command;
 import by.mrj.common.domain.client.channel.WebSocketClientChannel;
 import by.mrj.common.transport.converter.MessageChannelConverter;
 import by.mrj.server.controller.CommandListener;
@@ -7,6 +8,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.util.CharsetUtil;
 import lombok.Builder;
@@ -36,11 +38,12 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
             ByteBuf message = socketFrame.content();
             log.debug("Bytes to read: [{}]", message.readableBytes());
 
-            int headerSize = message.readInt();
-            String header = message.readCharSequence(headerSize, CharsetUtil.UTF_8).toString();
-            String body = message.readCharSequence(message.readableBytes(), CharsetUtil.UTF_8).toString();
+            int commandOrdinal = message.readInt();
+            Command command = Command.byOrdinal(commandOrdinal);
+//            String header = message.readCharSequence(command, CharsetUtil.UTF_8).toString();
+//            String payload = message.readCharSequence(message.readableBytes(), CharsetUtil.UTF_8).toString();
 
-            commandListener.processRequest(header, body, WebSocketClientChannel.from(ctx, messageChannelConverter));
+            commandListener.processRequest(command, message, WebSocketClientChannel.from(ctx, messageChannelConverter));
         } else {
             throw new UnsupportedOperationException("Unsupported frame type: " + frame.getClass().getName());
         }

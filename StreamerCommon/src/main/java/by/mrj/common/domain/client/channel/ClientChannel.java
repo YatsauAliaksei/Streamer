@@ -1,4 +1,4 @@
-package by.mrj.domain.client.channel;
+package by.mrj.common.domain.client.channel;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;

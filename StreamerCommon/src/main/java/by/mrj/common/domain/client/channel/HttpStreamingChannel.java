@@ -12,7 +12,11 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.DefaultHttpContent;
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.HttpChunkedInput;
+import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.stream.ChunkedStream;
 import io.netty.util.CharsetUtil;
 import lombok.Getter;
@@ -34,7 +38,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 @Slf4j
 @Getter
 @ToString
-public class HttpStreamingChannel implements by.mrj.domain.client.channel.ClientChannel {
+public class HttpStreamingChannel implements ClientChannel {
 
     // fixme: totally wrong
     private final Queue<ByteBuf> chunks = new ArrayDeque<>();
@@ -134,7 +138,6 @@ public class HttpStreamingChannel implements by.mrj.domain.client.channel.Client
             host = ((InetSocketAddress) socketAddress).getAddress().getHostAddress();
             port = ((InetSocketAddress) socketAddress).getPort();
         }
-
 
         ConnectionInfo connectionInfo = ConnectionInfo.from(ConnectionType.HTTP_STREAMING, null, host, port);
 

@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: hz-volume
+  labels:
+    app: hz-volume
+
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+#  persistentVolumeReclaimPolicy: Delete
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: hz-local-storage
+  local:
+    path: /home/mrj/MrJ/Projects/jhipster/Streamer/docker/hazelcast/resources
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - mrj-thinkpad-t480s
+
+#kubectl create -f persistentVolume.yaml
+

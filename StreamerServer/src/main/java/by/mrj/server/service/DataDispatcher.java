@@ -1,6 +1,8 @@
 package by.mrj.server.service;
 
 import by.mrj.common.domain.client.DataClient;
+import by.mrj.common.domain.data.BaseObject;
+import by.mrj.common.serialization.json.JsonJackson;
 import by.mrj.server.data.kafka.adapter.KafkaDataProviderAdapter;
 import by.mrj.server.service.register.ClientRegister;
 import io.netty.buffer.ByteBuf;
@@ -13,8 +15,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Slf4j
-@Component
-@ManagedResource
+//@Component
+//@ManagedResource
 @RequiredArgsConstructor
 public class DataDispatcher {
 
@@ -31,18 +33,18 @@ public class DataDispatcher {
         }
 
         if (!client.getStreamingChannel().getChannel().isActive()) {
-            log.error("Channel closed for [{}]", client.getLoginName());
+            log.error("Channel closed for [{}]", client.getId());
             return;
         }
 
-        List<ByteBuf> byteBufs = kafkaDataProviderAdapter.allAvailableData(identifier);
+        List<BaseObject> byteBufs = kafkaDataProviderAdapter.allAvailableData(identifier);
 
         log.debug("Sending to [{}] {} messages", identifier, byteBufs.size());
         log.debug("Messages [{}]", byteBufs);
 
         byteBufs.forEach(bb -> {
-            bb.resetReaderIndex();
-            client.getStreamingChannel().writeAndFlush(bb);
+//            bb.resetReaderIndex();
+            client.getStreamingChannel().writeAndFlush(JsonJackson.toJson(bb));
         });
 
         log.debug("Data for [{}] was sent", identifier);

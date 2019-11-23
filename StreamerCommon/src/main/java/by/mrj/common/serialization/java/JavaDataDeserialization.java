@@ -7,9 +7,9 @@ import lombok.SneakyThrows;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 
-public class JavaDataDeserialization implements DataDeserializer {
+public class JavaDataDeserialization { // implements DataDeserializer {
 
-    @Override
+//    @Override
     @SneakyThrows
     @SuppressWarnings("unchecked")
     public <T> Message<T> deserializeMessage(Object is, Class<T> clazz) {
@@ -20,7 +20,7 @@ public class JavaDataDeserialization implements DataDeserializer {
         throw new UnsupportedOperationException();
     }
 
-    @Override
+//    @Override
     @SneakyThrows
     @SuppressWarnings("unchecked")
     public <T> T deserialize(Object is, Class<T> clazz) {

@@ -19,7 +19,7 @@ import java.net.SocketAddress;
 @Getter
 @ToString
 @RequiredArgsConstructor
-public class WebSocketClientChannel implements by.mrj.domain.client.channel.ClientChannel {
+public class WebSocketClientChannel implements ClientChannel {
 
     private final Channel channel;
     private final ConnectionInfo connectionInfo;

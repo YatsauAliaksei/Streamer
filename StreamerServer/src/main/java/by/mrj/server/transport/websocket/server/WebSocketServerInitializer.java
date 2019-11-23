@@ -1,9 +1,10 @@
 package by.mrj.server.transport.websocket.server;
 
-import by.mrj.client.transport.http.HttpSecurityServerHandler;
 import by.mrj.common.serialization.DataSerializer;
 import by.mrj.common.transport.converter.MessageChannelConverter;
 import by.mrj.server.controller.CommandListener;
+import by.mrj.server.security.jwt.JWTFilter;
+import by.mrj.server.transport.http.HttpSecurityServerHandler;
 import by.mrj.server.transport.http.HttpServerHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
@@ -34,6 +35,7 @@ public class WebSocketServerInitializer extends ChannelInitializer<SocketChannel
     private final MessageChannelConverter<FullHttpResponse> httpMessageChannelConverter;
     private final MessageChannelConverter<WebSocketFrame> wsMessageChannelConverter;
     private final DataSerializer serializer;
+    private final JWTFilter jwtFilter;
 
     @Override
     public void initChannel(SocketChannel ch) throws Exception {
@@ -48,7 +50,7 @@ public class WebSocketServerInitializer extends ChannelInitializer<SocketChannel
         pipeline.addLast(new HttpObjectAggregator(1 << 16));
 //        pipeline.addLast(new WebSocketServerCompressionHandler());
         pipeline.addLast(new ChunkedWriteHandler()); // http streaming support
-        pipeline.addLast(new HttpSecurityServerHandler());
+        pipeline.addLast(new HttpSecurityServerHandler(jwtFilter));
         pipeline.addLast(new WebSocketServerProtocolHandler(WEBSOCKET_PATH, null, true));
 //        pipeline.addLast(new ValidationHandler());
         // todo: remove
@@ -57,13 +59,13 @@ public class WebSocketServerInitializer extends ChannelInitializer<SocketChannel
 
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                log.info("Message 0 DEBUG [{}]", msg);
+                log.debug("Message 0 DEBUG [{}]", msg);
                 ctx.fireChannelRead(msg);
             }
 
             @Override
             protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-                log.info("Message DEBUG [{}]", msg);
+                log.debug("Message DEBUG [{}]", msg);
                 ctx.fireChannelRead(msg);
             }
 

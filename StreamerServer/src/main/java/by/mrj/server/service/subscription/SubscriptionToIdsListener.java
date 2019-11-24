@@ -56,7 +56,8 @@ public class SubscriptionToIdsListener implements EntryListener<String, String> 
 
     @Override
     public void entryUpdated(EntryEvent<String, String> event) {
-        entryAdded(event);
+        log.debug("Update event for Subs -> ids listener");
+//        entryAdded(event);
     }
 
     @Override

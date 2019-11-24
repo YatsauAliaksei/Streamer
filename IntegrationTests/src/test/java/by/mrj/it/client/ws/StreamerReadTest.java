@@ -1,4 +1,4 @@
-package by.mrj.it.client;
+package by.mrj.it.client.ws;
 
 import by.mrj.client.config.streamer.StreamerClientConfiguration;
 import by.mrj.client.connection.ConnectionManager;
@@ -41,11 +41,6 @@ public class StreamerReadTest {
     private Integer port; // todo: ports
     @Value("${streamer.host}")
     private String host; // todo: hosts
-
-    @BeforeEach
-    public void before() {
-
-    }
 
     @Test
     public void webSocket_read() {

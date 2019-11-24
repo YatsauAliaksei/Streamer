@@ -9,4 +9,4 @@ spec:
   ports:
   - port: 9092
     targetPort: 9092
-    protocol: TCP
+#    protocol: TCP

@@ -62,7 +62,7 @@ public class LongPollingServerChannel implements ServerChannel {
         request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
         request.headers().set(HttpHeaderNames.ACCEPT_ENCODING, HttpHeaderValues.GZIP);
         request.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
-        request.headers().set(HttpHeaderNames.AUTHORIZATION, "Basic my:password");
+        request.headers().set(HttpHeaderNames.AUTHORIZATION, "Basic LP-client:password");
         request.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, message.readableBytes());
 
 

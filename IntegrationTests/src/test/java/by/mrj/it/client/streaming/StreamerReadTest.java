@@ -1,4 +1,4 @@
-package by.mrj.it.client;
+package by.mrj.it.client.streaming;
 
 import by.mrj.client.config.streamer.StreamerClientConfiguration;
 import by.mrj.client.connection.ConnectionManager;
@@ -7,14 +7,7 @@ import by.mrj.common.domain.Command;
 import by.mrj.common.domain.ConnectionType;
 import by.mrj.common.domain.Message;
 import by.mrj.common.domain.MessageHeader;
-import by.mrj.common.domain.Point;
 import by.mrj.common.domain.client.ConnectionInfo;
-import by.mrj.common.utils.DataUtils;
-import by.mrj.it.BasicData;
-import by.mrj.server.config.streamer.StreamerListenerConfiguration;
-import by.mrj.server.topic.TopicService;
-import com.google.common.collect.Lists;
-import com.hazelcast.core.HazelcastInstance;
 import io.reactivex.Single;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,8 +19,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 
@@ -35,13 +26,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
         (classes = {
                 StreamerClientConfiguration.class,
-                StreamerPostTest.class
+                StreamerReadTest.class
         }, properties = {
                 "config/application-dev.yml", "spring.main.banner-mode=off"
         })
 @ActiveProfiles("dev")
 @ExtendWith(SpringExtension.class)
-public class StreamerPostTest {
+public class StreamerReadTest {
 
     @Autowired
     private ConnectionManager connectionManager;
@@ -51,18 +42,9 @@ public class StreamerPostTest {
     @Value("${streamer.host}")
     private String host; // todo: hosts
 
-    private AtomicInteger userIdIncrement = new AtomicInteger();
-
-    @BeforeEach
-    public void before() {
-
-        // init section
-//        assertThat(topicService.createTopic("First")).isNotNull();
-    }
-
     @Test
-    public void webSocket_post() throws InterruptedException {
-        ConnectionInfo connectionInfo = ConnectionInfo.from(ConnectionType.WS, null, host, port, "login-POST");
+    public void streaming_read() {
+        ConnectionInfo connectionInfo = ConnectionInfo.from(ConnectionType.WS, null, host, port, "login-READ");
 
         Single<ServerChannelHolder> serverChannelHolderSingle = connectionManager.connect(connectionInfo);
         log.info("Connection created. [{}]", serverChannelHolderSingle.blockingGet());
@@ -73,18 +55,25 @@ public class StreamerPostTest {
         assertThat(channel).isNotNull();
         assertThat(channel.rawChannel()).isNotNull();
 
-        long k = 0;
-        while (true) {
-            channel.send(Lists.newArrayList(
-                    DataUtils.createNewData("First", "UU-ID" + k, BasicData.builder()
-                            .id(0)
-                            .name("base")
-                            .uuid("UU-ID" + k++)
-                            .build())));
+        channel.send(
+                Message.<String[]>builder()
+                        .payload(new String[]{"First"})
+                        .build(),
+                MessageHeader
+                        .builder()
+                        .command(Command.SUBSCRIBE)
+                        .build()).syncUninterruptibly();
 
-//            Thread.sleep(10_000);
-        }
 
-//        channel.closeFutureSync();
+        channel.send(
+                Message.<String>builder()
+                        .payload("Read all Opp")
+                        .build(),
+                MessageHeader
+                        .builder()
+                        .command(Command.READ_ALL)
+                        .build());
+
+        channel.closeFutureSync();
     }
 }

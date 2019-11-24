@@ -17,7 +17,7 @@ logging:
   level:
     ROOT: DEBUG
     io.github.jhipster: DEBUG
-    by.mrj: INFO
+    by.mrj: DEBUG
 
 spring:
   profiles:

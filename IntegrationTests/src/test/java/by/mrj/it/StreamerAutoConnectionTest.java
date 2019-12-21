@@ -1,6 +1,7 @@
 package by.mrj.it;
 
 import by.mrj.client.config.streamer.StreamerClientConfiguration;
+import by.mrj.client.connection.ConnectionHolder;
 import by.mrj.client.connection.ConnectionManager;
 import by.mrj.client.transport.ServerChannelHolder;
 import by.mrj.common.domain.ConnectionType;
@@ -40,24 +41,27 @@ public class StreamerAutoConnectionTest {
 
     @Autowired
     private ConnectionManager connectionManager;
+//    @Autowired
+//    private ConnectionHolder connectionHolder;
     @Value("${streamer.port}")
     private Integer port; // todo: ports
     @Value("${streamer.host}")
     private String host; // todo: hosts
 
-    private AtomicInteger userIdIncrement = new AtomicInteger();
+//    private AtomicInteger userIdIncrement = new AtomicInteger();
 
     @Test
-    public void autoConnect() {
+    public void autoConnect_Read() {
         Single<ServerChannelHolder> serverChannelHolderSingle = connectionManager.autoConnect();
-        log.info("Connection created. [{}]", serverChannelHolderSingle.blockingGet());
+        ServerChannelHolder channel = serverChannelHolderSingle.blockingGet();
+        log.info("Connection created. [{}]", channel);
 
         ConnectionType connectionType = ConnectionType.WS;
         log.debug("Sending {} Connect message...", connectionType);
 
-        ConnectionInfo connectionInfo = ConnectionInfo.from(connectionType, null, host, port);
+//        ConnectionInfo connectionInfo = ConnectionInfo.from(connectionType, null, host, port);
 
-        ServerChannelHolder channel = connectionManager.findChannel(connectionInfo);
+//        ServerChannelHolder channel = connectionHolder.findChannel(connectionInfo);
 
         assertThat(channel).isNotNull();
         assertThat(channel.rawChannel()).isNotNull();
@@ -70,12 +74,16 @@ public class StreamerAutoConnectionTest {
                         .builder()
                         .command(Command.READ_SPECIFIC)
                         .build());*/
+
+        channel.subscribe(Lists.newArrayList("First")).syncUninterruptibly();
+        channel.readAll();
+/*
         channel.send(Lists.newArrayList(
                 DataUtils.createNewData("topicName", "UU-ID", BasicData.builder()
                         .id(0)
                         .name("base")
                         .uuid("UU-ID")
-                        .build())));
+                        .build())));*/
 
         channel.closeFutureSync();
     }

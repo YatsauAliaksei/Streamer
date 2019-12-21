@@ -35,7 +35,7 @@ public class StreamerController implements CommandListener {
     @Override
     public void processRequest(Command command, ByteBuf msgBody, ClientChannel streamChannel) {
 //        MessageHeader header = dataDeserializer.deserialize(msgHeader, MessageHeader.class);
-        log.debug("Command received [{}]", command);
+        log.info("Command received [{}]", command);
 
         String currentUserLogin = SecurityUtils.getCurrentUserLogin()
                 .orElseThrow(() -> new UnsupportedOperationException("Not logged in user detected.")); // fixme: special Exception type
@@ -76,6 +76,8 @@ public class StreamerController implements CommandListener {
                 throw new UnsupportedOperationException();
                 // close connection if unrecognized command
         }
+
+        log.debug("{} operation processed.", command);
     }
 
     @Override

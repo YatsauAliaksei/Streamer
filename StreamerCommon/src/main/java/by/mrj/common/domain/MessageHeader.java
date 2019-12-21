@@ -10,7 +10,6 @@ import java.io.Serializable;
 @ToString
 public class MessageHeader implements Serializable {
 
-    @Deprecated
     @Getter
     private Command command;
     @Getter

@@ -1,5 +1,7 @@
-package by.mrj.server.service.subscription;
+package by.mrj.server.hz;
 
+import by.mrj.server.hz.listener.SubscriptionToIdsListener;
+import by.mrj.server.hz.listener.UserSubscriptionsListener;
 import com.hazelcast.core.HazelcastInstance;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

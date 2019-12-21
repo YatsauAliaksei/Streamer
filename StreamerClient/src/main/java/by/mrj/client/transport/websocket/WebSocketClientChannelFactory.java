@@ -1,5 +1,6 @@
 package by.mrj.client.transport.websocket;
 
+import by.mrj.client.service.MessageConsumer;
 import by.mrj.client.transport.ClientChannelFactory;
 import by.mrj.client.transport.ServerChannel;
 import by.mrj.common.domain.ConnectionType;
@@ -31,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -41,6 +43,7 @@ import java.net.URI;
 public class WebSocketClientChannelFactory implements ClientChannelFactory {
 
     private final DataSerializer dataSerializer;
+    private final MessageConsumer messageConsumer;
     @Setter
     private ChannelFutureListener handshakeListener = future -> {
         // NOOP
@@ -59,9 +62,10 @@ public class WebSocketClientChannelFactory implements ClientChannelFactory {
         // todo: https
         WebSocketClientHandshaker wsHandshaker =
                 getWebSocketClientHandshaker(new URI("http://" + host + ":" + port + "/" + ConnectionType.WS.getUri())
-                        , connectionInfo.getLogin());
+                        , connectionInfo.getLogin(), connectionInfo.getPassword());
 
         WebSocketCompleteClientHandler webSocketCompleteClientHandler = new WebSocketCompleteClientHandler(wsHandshaker);
+        var handler = new WebSocketClientTextHandler(messageConsumer);
 
         Bootstrap b = new Bootstrap();
         b.group(group)
@@ -82,11 +86,13 @@ public class WebSocketClientChannelFactory implements ClientChannelFactory {
                         p.addLast(new WebSocketClientCloseHandler());
                         p.addLast(new WebSocketClientBinaryHandler());
                         p.addLast(new WebSocketClientPongHandler());
-                        p.addLast(new WebSocketClientTextHandler());
+                        p.addLast(handler);
                         p.addLast(new SimpleChannelInboundHandler<Object>() {
                             @Override
                             protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-                                log.info("None processed msg [{}]", msg);
+                                log.error("#################################################");
+                                log.error("### NONE PROCESSED MESSAGE [{}]", msg);
+                                log.error("#################################################");
                             }
                         });
                     }
@@ -105,7 +111,7 @@ public class WebSocketClientChannelFactory implements ClientChannelFactory {
 
         log.info("WS handshake finished. Connected to {}:{}", host, port);
         log.info("WS connection established");
-        return new WebSocketServerChannel(channel, dataSerializer);
+        return new WebSocketServerChannel(channel, dataSerializer, handler);
     }
 
     @Override
@@ -116,10 +122,11 @@ public class WebSocketClientChannelFactory implements ClientChannelFactory {
     // Connect with V13 (RFC 6455 aka HyBi-17). You can change it to V08 or V00.
     // If you change it to V00, ping is not supported and remember to change
     // HttpResponseDecoder to WebSocketHttpResponseDecoder in the pipeline.
-    private WebSocketClientHandshaker getWebSocketClientHandshaker(URI uri, String login) {
+    private WebSocketClientHandshaker getWebSocketClientHandshaker(URI uri, String login, String password) {
         return WebSocketClientHandshakerFactory.newHandshaker(
                 uri, WebSocketVersion.V13, null, true, new DefaultHttpHeaders()
-                                .add(HttpHeaderNames.AUTHORIZATION, "Basic " + login + ":my-password")
+                        .add(HttpHeaderNames.AUTHORIZATION, "Basic " + login + ":" + password)
+                , Integer.MAX_VALUE
         );
     }
 }

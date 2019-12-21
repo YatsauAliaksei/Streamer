@@ -15,9 +15,9 @@
 
 logging:
   level:
-    ROOT: DEBUG
-    io.github.jhipster: DEBUG
-    by.mrj: DEBUG
+    ROOT: INFO
+    io.github.jhipster: INFO
+    by.mrj: INFO
 
 server:
   port: 8081

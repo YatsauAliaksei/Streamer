@@ -15,8 +15,7 @@ public class StreamingClientDefaultResponseContentHandler extends SimpleChannelI
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, DefaultHttpResponse response) throws Exception {
-        log.debug("Streaming Http Client received message: [{}]", response);
-//        log.debug("LongPolling Http Client received message: [{}]", content.content().toString(CharsetUtil.UTF_8));
+        log.warn("Streaming Http Client received DEFAULT message: [{}]", response);
     }
 
     @Override

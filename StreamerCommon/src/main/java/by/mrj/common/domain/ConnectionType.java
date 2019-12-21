@@ -26,4 +26,13 @@ public enum ConnectionType {
                 .findFirst()
                 .orElse(ConnectionType.UNKNOWN);
     }
+
+    public boolean oneOf(ConnectionType... types) {
+        for (ConnectionType type : types) {
+            if (type == this) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

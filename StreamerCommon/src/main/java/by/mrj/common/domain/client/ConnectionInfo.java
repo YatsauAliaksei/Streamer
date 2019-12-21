@@ -6,9 +6,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
-@ToString
 @Getter
 @EqualsAndHashCode
+@ToString(exclude = {"password", "sslCtx"})
 public class ConnectionInfo {
 
     private ConnectionType connectionType;
@@ -17,6 +17,7 @@ public class ConnectionInfo {
     private String host;
     private Integer port;
     private String login;
+    private String password;
 
     public static ConnectionInfo from(ConnectionType scheme, SslContext sslCtx, String host, Integer port) {
         ConnectionInfo connectionInfo = new ConnectionInfo();
@@ -28,13 +29,14 @@ public class ConnectionInfo {
     }
 
     // fixme: remove login
-    public static ConnectionInfo from(ConnectionType scheme, SslContext sslCtx, String host, Integer port, String login) {
+    public static ConnectionInfo from(ConnectionType scheme, SslContext sslCtx, String host, Integer port, String login, String password) {
         ConnectionInfo connectionInfo = new ConnectionInfo();
         connectionInfo.connectionType = scheme;
         connectionInfo.host = host;
         connectionInfo.port = port;
         connectionInfo.sslCtx = sslCtx;
         connectionInfo.login = login;
+        connectionInfo.password = password;
         return connectionInfo;
     }
 }

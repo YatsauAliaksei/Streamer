@@ -13,13 +13,14 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 
 @Slf4j
 @RequiredArgsConstructor
-public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+public class FullHttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     private final CommandListener commandListener;
     private final MessageChannelConverter<FullHttpResponse> messageChannelConverter;
@@ -39,6 +40,20 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
         Command command = Command.byOrdinal(commandOrdinal);
 //        String header = content.readCharSequence(headerSize, CharsetUtil.UTF_8).toString();
 //        String payload = content.readCharSequence(content.readableBytes(), CharsetUtil.UTF_8).toString();
+
+
+        if (command == Command.AUTHORIZE) {
+            log.info("Received AUTH command. Sending back...");
+            FullHttpResponse response = messageChannelConverter.convert("");
+            String jwt = req.headers().get(HttpHeaderNames.AUTHORIZATION);
+
+            response.headers().set(HttpHeaderNames.AUTHORIZATION, jwt);
+            ctx.channel().writeAndFlush(response);
+
+            log.info("Sent back [{}]", response);
+
+            return;
+        }
 
         ClientChannel streamChannel = createStreamChannel(ctx, req);
 

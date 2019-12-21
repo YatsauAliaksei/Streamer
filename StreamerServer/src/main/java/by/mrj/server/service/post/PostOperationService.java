@@ -37,10 +37,6 @@ public class PostOperationService {
 
         for (Map.Entry<String, List<BaseObject>> entry : topicToData.entrySet()) {
 
-//            List<BaseObject> baseObjects = entry.getValue().stream()
-//                    .map(BaseObject::getPayload)
-//                    .collect(Collectors.toList());
-
             String topicName = entry.getKey();
             List<BaseObject> baseObjects = entry.getValue();
             Topic topic = topicDataProvider.getTopic(topicName);
@@ -52,5 +48,7 @@ public class PostOperationService {
 
             dataProvider.putAll(topic.getName(), baseObjects);
         }
+
+        log.info("Posted {} objects", postData.size());
     }
 }

@@ -21,6 +21,8 @@
     <!--<logger name="javax.xml.bind" level="WARN"/>-->
     <!--<logger name="ch.qos.logback" level="WARN"/>-->
 
+    <logger name="com.netflix.concurrency.limits.limit" level="debug"/>
+
     <logger name="com.hazelcast" level="debug"/>
     <!--<logger name="com.ryantenney" level="WARN"/>-->
     <logger name="com.sun" level="WARN"/>

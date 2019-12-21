@@ -1,13 +1,13 @@
 package by.mrj.it;
 
 import by.mrj.client.config.streamer.StreamerClientConfiguration;
+import by.mrj.client.connection.ConnectionHolder;
 import by.mrj.client.connection.ConnectionManager;
 import by.mrj.client.transport.ServerChannelHolder;
 import by.mrj.common.domain.Command;
 import by.mrj.common.domain.ConnectionType;
 import by.mrj.common.domain.Message;
 import by.mrj.common.domain.MessageHeader;
-import by.mrj.common.domain.Point;
 import by.mrj.common.domain.client.ConnectionInfo;
 import by.mrj.common.utils.DataUtils;
 import by.mrj.server.config.streamer.StreamerListenerConfiguration;
@@ -48,6 +48,8 @@ public class StreamerConnectionTypesTest {
     @Autowired
     private ConnectionManager connectionManager;
     @Autowired
+    private ConnectionHolder connectionHolder;
+    @Autowired
     private TopicService topicService;
     @Autowired
     private HazelcastInstance hazelcastInstance;
@@ -80,12 +82,16 @@ public class StreamerConnectionTypesTest {
         log.info("Connection created. [{}]", serverChannelHolderSingle.blockingGet());
 
         log.debug("Sending WS Connect message...");
-        ServerChannelHolder channel = connectionManager.findChannel(connectionInfo);
+        ServerChannelHolder channel = connectionHolder.findChannel(connectionInfo);
 
         assertThat(channel).isNotNull();
         assertThat(channel.rawChannel()).isNotNull();
 
-        channel.send(
+        channel.subscribe(Lists.newArrayList("First"))
+                .syncUninterruptibly();
+
+        channel.readAll();
+/*        channel.send(
                 Message.<Point>builder()
                         .payload(new Point("First", 0, 0))
                         .build(),
@@ -93,7 +99,7 @@ public class StreamerConnectionTypesTest {
                 MessageHeader
                         .builder()
                         .command(Command.READ_ALL)
-                        .build());
+                        .build());*/
 
         channel.closeFutureSync();
     }
@@ -106,7 +112,7 @@ public class StreamerConnectionTypesTest {
         log.info("Connection created. [{}]", serverChannelHolderSingle.blockingGet());
 
         log.debug("Sending WS Connect message...");
-        ServerChannelHolder channel = connectionManager.findChannel(connectionInfo);
+        ServerChannelHolder channel = connectionHolder.findChannel(connectionInfo);
 
         assertThat(channel).isNotNull();
         assertThat(channel.rawChannel()).isNotNull();
@@ -184,7 +190,7 @@ public class StreamerConnectionTypesTest {
         log.info("Connection created. [{}]", serverChannelHolderSingle.blockingGet());
 
         log.debug("Sending WS Connect message...");
-        ServerChannelHolder channel = connectionManager.findChannel(connectionInfo);
+        ServerChannelHolder channel = connectionHolder.findChannel(connectionInfo);
 
         assertThat(channel).isNotNull();
         assertThat(channel.rawChannel()).isNotNull();

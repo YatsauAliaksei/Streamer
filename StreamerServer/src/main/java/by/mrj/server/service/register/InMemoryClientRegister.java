@@ -1,8 +1,8 @@
 package by.mrj.server.service.register;
 
 import by.mrj.common.domain.client.DataClient;
-import com.hazelcast.client.HazelcastClient;
-import com.hazelcast.core.HazelcastInstance;
+import by.mrj.common.domain.client.channel.ClientChannel;
+import by.mrj.server.data.DataProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,10 +19,20 @@ public class InMemoryClientRegister implements ClientRegister {
 
     private Map<String, DataClient> register = new ConcurrentHashMap<>();
     private final List<NewClientRegistrationListener> clientRegistrationListener;
+//    private final DataProvider dataProvider;
 
     @Override
     public void register(DataClient dataClient) {
-        if (register.put(dataClient.getId(), dataClient) == null) {
+        DataClient prev = register.put(dataClient.getId(), dataClient);
+
+//        dataProvider.
+
+        dataClient.getStreamingChannel()
+                .getChannel()
+                .closeFuture()
+                .addListener(future -> register.remove(dataClient.getId()));
+
+        if (prev == null) {
             log.debug("New client registration [{}]", dataClient);
 
             for (NewClientRegistrationListener registrationListener : clientRegistrationListener) {
@@ -30,6 +40,11 @@ public class InMemoryClientRegister implements ClientRegister {
             }
         } else {
             log.debug("Client registration refreshed [{}]", dataClient);
+
+            ClientChannel streamingChannel = prev.getStreamingChannel();
+            if (streamingChannel != null) {
+                streamingChannel.close();
+            }
         }
     }
 

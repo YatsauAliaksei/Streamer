@@ -1,12 +1,21 @@
 package by.mrj.client.transport.http.streaming;
 
+import by.mrj.client.service.MessageConsumer;
+import by.mrj.common.domain.data.BaseObject;
+import by.mrj.common.serialization.json.JsonJackson;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.nio.charset.StandardCharsets;
+
 @Slf4j
+@RequiredArgsConstructor
 public class StreamingClientTextHandler extends SimpleChannelInboundHandler<FullHttpResponse> {
+
+    private final MessageConsumer messageConsumer;
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
@@ -15,7 +24,12 @@ public class StreamingClientTextHandler extends SimpleChannelInboundHandler<Full
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, FullHttpResponse response) throws Exception {
-        log.debug("Streaming Http Client received message: [{}]", response);
+
+        log.info("Streaming Http Client received FULL message: [{}]", response);
+
+        String content = response.content().toString(StandardCharsets.UTF_8);
+
+        messageConsumer.consume(JsonJackson.fromJson(content, BaseObject[].class));
     }
 
     @Override
@@ -24,5 +38,10 @@ public class StreamingClientTextHandler extends SimpleChannelInboundHandler<Full
             log.error("Error processing response", cause);
         }
         super.exceptionCaught(ctx, cause);
+    }
+
+    @Override
+    public String toString() {
+        return "Streaming Text handler";
     }
 }

@@ -1,17 +1,12 @@
 package by.mrj.server.config.streamer;
 
-import by.mrj.server.service.subscription.HzListenerService;
-import by.mrj.server.service.subscription.SubscriptionToIdsListener;
-import by.mrj.server.service.subscription.UserSubscriptionsListener;
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ICacheManager;
-import com.hazelcast.core.LifecycleEvent;
 import io.github.jhipster.config.JHipsterProperties;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -47,7 +42,7 @@ public class HazelcastClientConfiguration implements DisposableBean {
         return HazelcastClient.newHazelcastClient(hzClientConfig);
     }
 
-    @Bean
+    @Bean // todo: not sure needed as a bean
     public ClientConfig hzClientConfig() {
         ClientConfig config = new ClientConfig();
         config.getGroupConfig().setName("hz-group");//.setPassword("dev-pass");

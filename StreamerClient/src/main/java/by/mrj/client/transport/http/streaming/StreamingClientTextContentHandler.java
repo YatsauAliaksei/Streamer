@@ -1,13 +1,21 @@
 package by.mrj.client.transport.http.streaming;
 
+import by.mrj.client.service.MessageConsumer;
+import by.mrj.common.domain.data.BaseObject;
+import by.mrj.common.serialization.json.JsonJackson;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.DefaultHttpContent;
-import io.netty.util.CharsetUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.nio.charset.StandardCharsets;
+
 @Slf4j
+@RequiredArgsConstructor
 public class StreamingClientTextContentHandler extends SimpleChannelInboundHandler<DefaultHttpContent> {
+
+    private final MessageConsumer messageConsumer;
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
@@ -15,9 +23,13 @@ public class StreamingClientTextContentHandler extends SimpleChannelInboundHandl
     }
 
     @Override
-    public void channelRead0(ChannelHandlerContext ctx, DefaultHttpContent content) throws Exception {
-//        log.debug("LongPolling Http Client received message: [{}]", content.content());
-        log.debug("Streaming Http Client received message: [{}]", content.content().toString(CharsetUtil.UTF_8));
+    public void channelRead0(ChannelHandlerContext ctx, DefaultHttpContent response) throws Exception {
+
+        log.info("Streaming Http Client received DEFAULT CONTENT message: [{}]", response);
+
+        String content = response.content().toString(StandardCharsets.UTF_8);
+
+        messageConsumer.consume(JsonJackson.fromJson(content, BaseObject[].class));
     }
 
     @Override

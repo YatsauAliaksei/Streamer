@@ -34,6 +34,7 @@ public class HttpMessageChannelConverter implements MessageChannelConverter<Full
                 new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, dataToSend);
         response.headers().set(HttpHeaderNames.ACCEPT_ENCODING, HttpHeaderValues.GZIP);
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
+        response.headers().set(HttpHeaderNames.AUTHORIZATION, "text/plain; charset=UTF-8");
         HttpUtil.setContentLength(response, dataToSend.readableBytes());
         HttpUtil.setKeepAlive(response, true);
 

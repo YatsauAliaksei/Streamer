@@ -1,5 +1,6 @@
 package by.mrj.client.transport;
 
+import by.mrj.common.domain.Command;
 import by.mrj.common.domain.Message;
 import by.mrj.common.domain.MessageHeader;
 import by.mrj.common.domain.client.ConnectionInfo;
@@ -8,8 +9,10 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.reactivex.Single;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -19,65 +22,45 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
-@RequiredArgsConstructor
-@ToString//(exclude = "closeChannelFuture")
+@Getter
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString
 public class ServerChannelHolder {
 
-    @Getter
-    private volatile ServerChannel channel;
-    //    @Getter
-//    private ChannelFuture closeChannelFuture;
-    @Getter
+    private final ServerChannel channel;
+    private final SimpleChannelInboundHandler<?> handler;
     private boolean isConnected;
-    @Getter
-    private boolean isClosed; // todo: think about sync
 
-    public Single<? extends ServerChannel> createChannel(ClientChannelFactory clientChannelFactory, ConnectionInfo connectionInfo, ChannelFutureListener channelFutureListener) {
-
-        if (isClosed) {
-            throw new RuntimeException("Channel holder can't be reused. Create new instead"); // todo: check
-        }
-
-        if (channelFutureListener != null) {
-            clientChannelFactory.setHandshakeListener(channelFutureListener);
-        }
-
-        return Single.create(emitter ->
-                CompletableFuture.runAsync(() -> {
-                    ChannelFuture closeChannelFuture = null;
-                    EventLoopGroup group = new NioEventLoopGroup();
-
-                    try {
-                        channel = clientChannelFactory.createChannel(group, connectionInfo);
-                        isConnected = true;
-
-                        emitter.onSuccess(channel);
-
-                        log.info("[{}] connection established.", channel.getChannel());
-
-                        closeChannelFuture = channel.getChannel().closeFuture();
-                        closeChannelFuture.sync();
-
-                    } catch (InterruptedException e) {
-                        emitter.onError(e); // todo:
-                        throw new RuntimeException(e);
-                    } finally {
-                        group.shutdownGracefully();
-
-                        if (closeChannelFuture != null && !closeChannelFuture.isDone()) {
-                            closeChannelFuture.cancel(true);
-                        }
-                        isClosed = true;
-                    }
-                }));
+    public ChannelFuture readAll() {
+        return channel.send(
+                Message.<String>builder()
+                        .payload("Read all Operation")
+                        .build(),
+                MessageHeader
+                        .builder()
+                        .command(Command.READ_ALL)
+                        .build());
     }
 
-    public Single<? extends ServerChannel> createChannel(ClientChannelFactory clientChannelFactory, ConnectionInfo connectionInfo) {
-        return createChannel(clientChannelFactory, connectionInfo, null);
+    public ChannelFuture post(List<BaseObject> data) {
+        return channel.send(data);
     }
 
-    public Channel rawChannel() {
-        return channel.getChannel();
+    public ChannelFuture subscribe(List<String> subscriptions) {
+        return channel.send(
+                Message.<String[]>builder()
+                        .payload(subscriptions.toArray(new String[0]))
+                        .build(),
+                MessageHeader
+                        .builder()
+                        .command(Command.SUBSCRIBE)
+                        .build());
+    }
+
+    public ChannelFuture authorize(String login, String pwd) {
+        log.info("Authorizing client...");
+
+        return channel.authorize(login, pwd);
     }
 
     public ChannelFuture send(Message<?> msg, MessageHeader messageHeader) {
@@ -98,9 +81,62 @@ public class ServerChannelHolder {
         return channel.send(postData);
     }
 
+    public static Single<ServerChannelHolder> create(ClientChannelFactory clientChannelFactory, ConnectionInfo connectionInfo) {
+        return create(clientChannelFactory, connectionInfo, null);
+    }
+
+    public static Single<ServerChannelHolder> create(ClientChannelFactory clientChannelFactory,
+                                                     ConnectionInfo connectionInfo,
+                                                     ChannelFutureListener channelFutureListener) {
+
+        if (channelFutureListener != null) {
+            clientChannelFactory.setHandshakeListener(channelFutureListener);
+        }
+
+        return Single.create(emitter ->
+                CompletableFuture.runAsync(() -> {
+                    ChannelFuture closeChannelFuture = null;
+                    EventLoopGroup group = new NioEventLoopGroup();
+
+                    ServerChannelHolder sch;
+                    try {
+                        log.info("Creating channel [{}]", connectionInfo.getConnectionType());
+
+                        ServerChannel channel = clientChannelFactory.createChannel(group, connectionInfo);
+                        sch = new ServerChannelHolder(channel, channel.getHandler());
+
+                        sch.isConnected = true;
+
+//                        sch.authorize(connectionInfo.getLogin(), connectionInfo.getPassword());
+
+                        emitter.onSuccess(sch);
+
+                        log.info("Connection established [{}].", sch.channel.getChannel());
+
+                        closeChannelFuture = sch.channel.getChannel().closeFuture();
+                        closeChannelFuture.sync();
+
+                    } catch (InterruptedException e) {
+                        emitter.onError(e); // todo:
+                        throw new RuntimeException(e);
+                    } finally {
+                        group.shutdownGracefully();
+
+                        if (closeChannelFuture != null && !closeChannelFuture.isDone()) {
+                            closeChannelFuture.cancel(true);
+                        }
+                    }
+                }).exceptionally(throwable -> {
+                    throw new RuntimeException(throwable);
+                }));
+    }
+
+    public Channel rawChannel() {
+        return channel.getChannel();
+    }
+
     public void closeFutureSync() {
         channel.closeFutureSync();
         isConnected = false;
-        isClosed = true;
     }
 }

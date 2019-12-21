@@ -1,7 +1,6 @@
 package by.mrj.client.connection;
 
 import by.mrj.client.transport.ClientChannelFactory;
-import by.mrj.client.transport.ServerChannel;
 import by.mrj.client.transport.ServerChannelHolder;
 import by.mrj.common.domain.ConnectionType;
 import by.mrj.common.domain.client.ConnectionInfo;
@@ -10,15 +9,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @RequiredArgsConstructor
 public class ConnectionManager {
 
     private final Map<ConnectionType, ClientChannelFactory> typeToFactory;
-    private final AutoConnectionInfoFactory connectionInfoFactory;
-    private Map<ConnectionInfo, ServerChannelHolder> connectionToChannel = new ConcurrentHashMap<>();
+    private final ConnectionInfoFactory connectionInfoFactory;
+    private final ConnectionHolder connectionHolder;
 
     /**
      * Creates connection using {@param connectionInfo}.
@@ -26,13 +24,13 @@ public class ConnectionManager {
      * @return - {@link ServerChannelHolder}
      */
     public Single<ServerChannelHolder> autoConnect() {
-        ConnectionInfo ci = connectionInfoFactory.get();
+        ConnectionInfo ci = connectionInfoFactory.auto();
         log.info("Trying to connect using [{}]", ci);
         return connect(ci);
     }
 
     /**
-     * May return not yet initialized channel. Use {@link this#findChannel} instead if guarantee needed.
+     * May return not yet initialized channel. Use {@link ConnectionHolder#findChannel} instead if guarantee needed.
      * @param connectionInfo
      * @return
      */
@@ -43,28 +41,33 @@ public class ConnectionManager {
             // fixme
         }
 
-        return createServerChannelHolder(connectionInfo, clientChannelFactory);
+        Single<ServerChannelHolder> serverChannelHolder = createServerChannelHolder(connectionInfo, clientChannelFactory);
+//        serverChannelHolder.subscribe(sch -> sch.authorize(connectionInfo.getLogin(), connectionInfo.getPassword()));
+
+        return serverChannelHolder;
     }
 
-    private Single<ServerChannelHolder> createServerChannelHolder(ConnectionInfo connectionInfo, ClientChannelFactory clientChannelFactory) {
+    private Single<ServerChannelHolder> createServerChannelHolder(ConnectionInfo connectionInfo,
+                                                                  ClientChannelFactory clientChannelFactory) {
         return Single.create(emitter -> {
-            ServerChannelHolder serverChannelHolder = new ServerChannelHolder();
 
-            Single<? extends ServerChannel> channelSingle = serverChannelHolder.createChannel(clientChannelFactory, connectionInfo);
+            Single<ServerChannelHolder> channelSingle = ServerChannelHolder.create(clientChannelFactory, connectionInfo);
 
-            channelSingle.subscribe(ch -> {
+            channelSingle.subscribe(sch -> {
 
                         ServerChannelHolder prevServerChannelHolder;
 
-                        log.info("Saving connection channel [{}]", ch);
+                        log.info("Saving connection channel [{}]", sch);
 
-                        if ((prevServerChannelHolder = connectionToChannel.put(connectionInfo, serverChannelHolder)) != null) {
+                        if ((prevServerChannelHolder = connectionHolder.put(connectionInfo, sch)) != null) {
                             prevServerChannelHolder.closeFutureSync();
                         }
-                        serverChannelHolder.rawChannel().closeFuture()
-                                .addListener(closeFuture -> connectionToChannel.remove(connectionInfo));
+                        sch.rawChannel().closeFuture()
+                                .addListener(closeFuture -> connectionHolder.remove(connectionInfo));
 
-                        emitter.onSuccess(serverChannelHolder);
+//                        sch.authorize(connectionInfo.getLogin(), connectionInfo.getPassword()).syncUninterruptibly();
+
+                        emitter.onSuccess(sch);
                     },
                     e -> {
                         throw new RuntimeException(e);
@@ -78,10 +81,6 @@ public class ConnectionManager {
 
     public void closeConnection(ConnectionInfo connectionInfo) {
         // fixme
-    }
-
-    public ServerChannelHolder findChannel(ConnectionInfo connectionInfo) {
-        return connectionToChannel.getOrDefault(connectionInfo, null);
     }
 
 }

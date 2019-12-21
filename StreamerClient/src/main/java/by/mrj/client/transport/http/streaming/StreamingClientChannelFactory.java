@@ -1,11 +1,21 @@
 package by.mrj.client.transport.http.streaming;
 
+import by.mrj.client.service.MessageConsumer;
 import by.mrj.client.transport.ClientChannelFactory;
+import by.mrj.client.transport.http.AuthenticationHttpHandler;
 import by.mrj.common.domain.ConnectionType;
 import by.mrj.common.domain.client.ConnectionInfo;
 import by.mrj.common.serialization.DataSerializer;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.HttpClientCodec;
@@ -15,6 +25,7 @@ import io.netty.handler.ssl.SslContext;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -23,6 +34,7 @@ import org.springframework.stereotype.Component;
 public class StreamingClientChannelFactory implements ClientChannelFactory {
 
     private final DataSerializer dataSerializer;
+    private final MessageConsumer messageConsumer;
     @Setter
     private ChannelFutureListener handshakeListener = future -> {
         // NOOP
@@ -34,6 +46,9 @@ public class StreamingClientChannelFactory implements ClientChannelFactory {
         final String host = connectionInfo.getHost();
         final Integer port = connectionInfo.getPort();
         final SslContext sslCtx = connectionInfo.getSslCtx();
+
+        var handler = new StreamingClientTextHandler(messageConsumer);
+        var authHandler = new AuthenticationHttpHandler();
 
         Bootstrap b = new Bootstrap();
         b.group(group)
@@ -48,21 +63,37 @@ public class StreamingClientChannelFactory implements ClientChannelFactory {
                         }
                         p.addLast(new HttpClientCodec());
 //                                    WebSocketClientCompressionHandler.INSTANCE,
+                        p.addLast(authHandler);
                         p.addLast(new StreamingClientDefaultResponseContentHandler());
-                        p.addLast(new StreamingClientTextContentHandler());
-                        p.addLast(new StreamingClientTextHandler());
+                        p.addLast(new StreamingClientTextContentHandler(messageConsumer));
+                        p.addLast(handler);
+                        p.addLast(new SimpleChannelInboundHandler<Object>() {
+                            @Override
+                            protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
+                                log.error("#################################################");
+                                log.error("### NONE PROCESSED MESSAGE [{}]", msg);
+                                log.error("#################################################");
+                            }
+                        });
                     }
                 })
                 .option(ChannelOption.SO_KEEPALIVE, true);
 
+        log.info("Connecting...");
+
         try {
             ChannelFuture channelFuture = b.connect(host, port);
-            log.info("LP connection established");
+            log.info("ST connection established");
 
             channelFuture.addListener(handshakeListener);
 
             Channel channel = channelFuture.sync().channel();
-            return new StreamingServerChannel(channel, dataSerializer);
+
+            StreamingServerChannel streamingServerChannel = new StreamingServerChannel(channel, dataSerializer, handler);
+
+            authorize(connectionInfo, authHandler, streamingServerChannel);
+
+            return streamingServerChannel;
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

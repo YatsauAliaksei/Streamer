@@ -1,11 +1,12 @@
-package by.mrj.server.transport.websocket.server;
+package by.mrj.server.transport;
 
 import by.mrj.common.serialization.DataSerializer;
 import by.mrj.common.transport.converter.MessageChannelConverter;
 import by.mrj.server.controller.CommandListener;
 import by.mrj.server.security.jwt.JWTFilter;
 import by.mrj.server.transport.http.HttpSecurityServerHandler;
-import by.mrj.server.transport.http.HttpServerHandler;
+import by.mrj.server.transport.http.FullHttpRequestHandler;
+import by.mrj.server.transport.websocket.server.WebSocketFrameHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -26,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
-public class WebSocketServerInitializer extends ChannelInitializer<SocketChannel> {
+public class ServerInitializer extends ChannelInitializer<SocketChannel> {
 
     private static final String WEBSOCKET_PATH = "/type3";
 
@@ -47,11 +48,11 @@ public class WebSocketServerInitializer extends ChannelInitializer<SocketChannel
         pipeline.addLast(new LoggingHandler(LogLevel.DEBUG));
         pipeline.addLast(new HttpServerCodec());
         pipeline.addLast(new HttpServerKeepAliveHandler());
-        pipeline.addLast(new HttpObjectAggregator(1 << 16));
+        pipeline.addLast(new HttpObjectAggregator(Integer.MAX_VALUE));
 //        pipeline.addLast(new WebSocketServerCompressionHandler());
         pipeline.addLast(new ChunkedWriteHandler()); // http streaming support
         pipeline.addLast(new HttpSecurityServerHandler(jwtFilter));
-        pipeline.addLast(new WebSocketServerProtocolHandler(WEBSOCKET_PATH, null, true));
+        pipeline.addLast(new WebSocketServerProtocolHandler(WEBSOCKET_PATH, null, true, Integer.MAX_VALUE));
 //        pipeline.addLast(new ValidationHandler());
         // todo: remove
         pipeline.addLast(new SimpleChannelInboundHandler<Object>() { /* Logging temporary */
@@ -77,7 +78,16 @@ public class WebSocketServerInitializer extends ChannelInitializer<SocketChannel
                 super.exceptionCaught(ctx, cause);
             }
         });
-        pipeline.addLast(new HttpServerHandler(commandListener, httpMessageChannelConverter, serializer));
+        //todo: think about removing this if WS established
+        pipeline.addLast(new FullHttpRequestHandler(commandListener, httpMessageChannelConverter, serializer));
         pipeline.addLast(new WebSocketFrameHandler(commandListener, wsMessageChannelConverter));
+        pipeline.addLast(new SimpleChannelInboundHandler<Object>() {
+            @Override
+            protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
+                log.error("#################################################");
+                log.error("### NONE PROCESSED MESSAGE DETECTED [{}]", msg);
+                log.error("#################################################");
+            }
+        });
     }
 }

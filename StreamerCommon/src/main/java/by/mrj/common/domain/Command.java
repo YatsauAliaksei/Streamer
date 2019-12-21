@@ -1,7 +1,7 @@
 package by.mrj.common.domain;
 
 public enum Command {
-    POST, READ_SPECIFIC, READ_ALL, SUBSCRIBE, UNSUBSCRIBE, CREATE_TOPIC;
+    POST, READ_SPECIFIC, READ_ALL, SUBSCRIBE, UNSUBSCRIBE, CREATE_TOPIC, AUTHORIZE;
 
     public static Command byOrdinal(int ordinal) {
         if (ordinal < Command.values().length) {

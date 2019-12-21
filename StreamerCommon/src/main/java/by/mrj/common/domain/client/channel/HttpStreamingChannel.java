@@ -1,9 +1,7 @@
 package by.mrj.common.domain.client.channel;
 
 
-import by.mrj.common.domain.Command;
 import by.mrj.common.domain.ConnectionType;
-import by.mrj.common.domain.MessageHeader;
 import by.mrj.common.domain.client.ConnectionInfo;
 import by.mrj.common.serialization.DataSerializer;
 import by.mrj.common.utils.ByteBufUtils;
@@ -20,14 +18,15 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.stream.ChunkedStream;
 import io.netty.util.CharsetUtil;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.ArrayDeque;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.TRANSFER_ENCODING;
 import static io.netty.handler.codec.http.HttpHeaderValues.CHUNKED;
@@ -41,11 +40,13 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 public class HttpStreamingChannel implements ClientChannel {
 
     // fixme: totally wrong
-    private final Queue<ByteBuf> chunks = new ArrayDeque<>();
+    private final Queue<ByteBuf> chunks = new ConcurrentLinkedQueue<>();// new ArrayDeque<>();
 
     private final Channel channel;
     private final ConnectionInfo connectionInfo;
     private final DataSerializer serializer;
+    @Setter
+    private volatile boolean isEndOfInput;
 
     public HttpStreamingChannel(Channel channel, ConnectionInfo connectionInfo, DataSerializer serializer) {
         this.channel = channel;
@@ -66,18 +67,24 @@ public class HttpStreamingChannel implements ClientChannel {
     }
 
     public void write(String toSend) {
-        ByteBuf msgBuf = ByteBufUtils.create(serializer,
+        ByteBuf msgBuf = ByteBufUtils.create(toSend);
+/*                ByteBufUtils.create(serializer,
                 MessageHeader.builder()
                         .command(Command.POST)
                         .build(),
                 by.mrj.common.domain.Message.<String>builder()
                         .payload(toSend)
-                        .build());
+                        .build());*/
+
+//        msgBuf.retain();
+
 
         this.write(msgBuf);
     }
 
     public void write(ByteBuf toSend) {
+        log.debug("Adding to queue chunk [{}]", toSend);
+
         chunks.add(toSend);
     }
 
@@ -96,8 +103,9 @@ public class HttpStreamingChannel implements ClientChannel {
 
             @Override
             public boolean isEndOfInput() throws Exception {
-                log.debug("Not yet end of chunks...");
-                return false;
+                log.debug("Is end of chunks? {}", isEndOfInput);
+
+                return isEndOfInput;
             }
 
             @Override
@@ -128,6 +136,11 @@ public class HttpStreamingChannel implements ClientChannel {
                 log.error("Failed to send header chunk", future.cause());
             }
         });
+    }
+
+    @Override
+    public void close() {
+        isEndOfInput = true;
     }
 
     public static HttpStreamingChannel from(ChannelHandlerContext ctx, DataSerializer serializer) {

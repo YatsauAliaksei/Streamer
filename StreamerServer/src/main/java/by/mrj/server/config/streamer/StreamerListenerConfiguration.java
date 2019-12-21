@@ -10,10 +10,9 @@ import by.mrj.server.security.jwt.JWTFilter;
 import by.mrj.server.service.register.ClientRegister;
 import by.mrj.server.service.register.InMemoryClientRegister;
 import by.mrj.server.service.register.NewClientRegistrationListener;
-import by.mrj.server.transport.websocket.server.WebSocketServer;
-import by.mrj.server.transport.websocket.server.WebSocketServerInitializer;
+import by.mrj.server.transport.ServerInitializer;
+import by.mrj.server.transport.SocketServer;
 import com.google.common.collect.Lists;
-import com.hazelcast.core.HazelcastInstance;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.ssl.SslContext;
@@ -37,6 +36,7 @@ import org.springframework.context.annotation.EnableMBeanExport;
 
 import javax.net.ssl.SSLException;
 import java.security.cert.CertificateException;
+import java.util.List;
 import java.util.Properties;
 
 
@@ -67,23 +67,23 @@ public class StreamerListenerConfiguration {
     }
 
     @Bean
-    public WebSocketServer webSocketServer(WebSocketServerInitializer webSocketServerInitializer) {
-        WebSocketServer webSocketServer = new WebSocketServer(webSocketServerInitializer);
-        webSocketServer.setPort(port);
-        webSocketServer.listen();
-        return webSocketServer;
+    public SocketServer webSocketServer(ServerInitializer serverInitializer) {
+        SocketServer socketServer = new SocketServer(serverInitializer);
+        socketServer.setPort(port);
+        socketServer.listen();
+        return socketServer;
     }
 
     // todo: to many dependencies. Smells
     @Bean
-    public WebSocketServerInitializer webSocketServerInitializer(@Autowired(required = false) SslContext sslContext,
-                                                                 CommandListener commandListener,
-                                                                 @Qualifier("dataSerializer") DataSerializer serializer,
-                                                                 JWTFilter jwtFilter,
-                                                                 MessageChannelConverter<FullHttpResponse> httpMessageChannelConverter,
-                                                                 MessageChannelConverter<WebSocketFrame> wsMessageChannelConverter) {
+    public ServerInitializer serverInitializer(@Autowired(required = false) SslContext sslContext,
+                                               CommandListener commandListener,
+                                               @Qualifier("dataSerializer") DataSerializer serializer,
+                                               JWTFilter jwtFilter,
+                                               MessageChannelConverter<FullHttpResponse> httpMessageChannelConverter,
+                                               MessageChannelConverter<WebSocketFrame> wsMessageChannelConverter) {
 
-        return new WebSocketServerInitializer(sslContext, commandListener,
+        return new ServerInitializer(sslContext, commandListener,
                 httpMessageChannelConverter, wsMessageChannelConverter, serializer, jwtFilter);
     }
 
@@ -93,13 +93,17 @@ public class StreamerListenerConfiguration {
 //    }
 
     @Bean
-    public ClientRegister clientRegister() {
-        return new InMemoryClientRegister(Lists.newArrayList((NewClientRegistrationListener) dataClient -> {
-            log.info("Client registered [{}]", dataClient.getId());
-        }));
+    public ClientRegister clientRegister(List<NewClientRegistrationListener> clientRegistrationListenerList) {
+        return new InMemoryClientRegister(clientRegistrationListenerList);
     }
 
-//    @Bean
+    @Bean
+    public NewClientRegistrationListener clientRegistrationListener() {
+        return dataClient ->
+                log.info("Client registered [{}]", dataClient.getId());
+    }
+
+    //    @Bean
     public KafkaProducer<String, String> kafkaProducer() {
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServerUrl + ":" + kafkaServerPort);
@@ -112,7 +116,7 @@ public class StreamerListenerConfiguration {
         return producer;
     }
 
-//    @Bean
+    //    @Bean
     public KafkaConsumer<String, String> kafkaConsumer() {
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServerUrl + ":" + kafkaServerPort);

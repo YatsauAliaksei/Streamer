@@ -1,8 +1,10 @@
 package by.mrj.client.config.streamer;
 
 import by.mrj.client.config.ApplicationProperties;
-import by.mrj.client.connection.AutoConnectionInfoFactory;
+import by.mrj.client.connection.ConnectionHolder;
+import by.mrj.client.connection.ConnectionInfoFactory;
 import by.mrj.client.connection.ConnectionManager;
+import by.mrj.client.service.MessageLoggingConsumer;
 import by.mrj.client.transport.ClientChannelFactory;
 import by.mrj.common.domain.ConnectionType;
 import by.mrj.common.serialization.DataDeserializer;
@@ -12,16 +14,13 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.AutoConfigurationExcludeFilter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.TypeExcludeFilter;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Profile;
 
 import javax.net.ssl.SSLException;
 import java.security.cert.CertificateException;
@@ -53,14 +52,21 @@ public class StreamerClientConfiguration {
     }
 
     @Bean
+    @Profile("dev")
+    public MessageLoggingConsumer messageConsumer() {
+        return new MessageLoggingConsumer();
+    }
+
+    @Bean
     public ConnectionManager dummyConnectionManager(List<ClientChannelFactory> clientChannelFactories,
-                                                    AutoConnectionInfoFactory autoConnectionInfoFactory) {
+                                                    ConnectionInfoFactory autoConnectionInfoFactory,
+                                                    ConnectionHolder connectionHolder) {
 
         Map<ConnectionType, ClientChannelFactory> connectionTypeToClientChannelFactory = clientChannelFactories.stream()
                 .collect(Collectors.toMap(ClientChannelFactory::connectionType, Function.identity()));
 
         ConnectionManager dummyConnectionManager = new ConnectionManager(connectionTypeToClientChannelFactory,
-                autoConnectionInfoFactory);
+                autoConnectionInfoFactory, connectionHolder);
 
 //        dummyConnectionManager.autoConnect();
         log.info("Connection manager created.");

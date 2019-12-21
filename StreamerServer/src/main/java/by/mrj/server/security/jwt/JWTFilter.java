@@ -31,20 +31,26 @@ public class JWTFilter {
         this.tokenProvider = tokenProvider;
     }
 
-    public void authorize(FullHttpRequest request) {
+    public String authorize(FullHttpRequest request) {
         SecurityContextHolder.clearContext();
         String token = request.headers().get(HttpHeaderNames.AUTHORIZATION);
+
+        if (!StringUtils.hasText(token)) {
+            return "";
+        }
 
         String jwt = resolveTokenJwt(token);
         String basic;
 
-        if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
+        if (tokenProvider.validateToken(jwt)) {
             authenticate(jwt);
         } else if (StringUtils.hasText(basic = resolveTokenBasic(token))) {
             jwt = createJwt(basic);
             // todo: double Authentication creation
             authenticate(jwt);
         }
+
+        return jwt;
     }
 
     private void authenticate(String jwt) {
@@ -75,13 +81,13 @@ public class JWTFilter {
         if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
             return token.substring(7);
         }
-        return null;
+        return "";
     }
 
     private String resolveTokenBasic(String token) {
         if (token.startsWith("Basic ")) {
             return token.substring(6);
         }
-        return null;
+        return "";
     }
 }

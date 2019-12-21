@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
@@ -20,6 +21,7 @@ public class BaseObject implements Serializable {
     private String uuid;
     private String topic;
     private int version;
+    private String hash;
 
     private String payload;
 }

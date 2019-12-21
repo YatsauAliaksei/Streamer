@@ -1,12 +1,17 @@
 package by.mrj.server.data;
 
 import by.mrj.common.domain.data.BaseObject;
+import by.mrj.server.data.domain.DataToSend;
 import com.google.common.collect.Sets;
 import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IAtomicLong;
+import com.hazelcast.core.ILock;
 import com.hazelcast.core.IMap;
+import com.hazelcast.core.ISet;
 import com.hazelcast.core.MultiMap;
 import com.hazelcast.map.listener.MapListener;
+import com.hazelcast.ringbuffer.Ringbuffer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -14,6 +19,8 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,7 +37,7 @@ public class HazelcastDataProvider implements DataProvider {
 
     /**
      * @param clientId
-     * @param maxSize - returned size limit // todo: not implemented yet
+     * @param maxSize  - returned size limit // todo: not implemented yet
      * @return - all available {@link BaseObject} for subscription {@param clientId}
      */
     @Override
@@ -44,14 +51,80 @@ public class HazelcastDataProvider implements DataProvider {
         }
 
         MultiMap<String, String> subToIds = hazelcastInstance.getMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_IDS);
+//        log.info("Subs to ids: [{}]", subToIds.entrySet());
+        log.info("Subs to ids size: [{}]", subToIds.size());
+
+        if (subToIds.size() == 0) {
+            log.info("No data found");
+
+            return Collections.emptyList();
+        }
 
         return subs.stream()
-                .flatMap(topicName ->
-                        hazelcastInstance.<String, BaseObject>getMap(topicName)
-                                .getAll(Sets.newHashSet(subToIds.get(createSubsToIdsKey(clientId, topicName))))
-                                .values()
-                                .stream()
-                ).collect(Collectors.toList());
+                .flatMap(topicName -> {
+                    Collection<String> ids = subToIds.get(createSubsToIdsKey(clientId, topicName));
+                    Set<String> keys = ids.stream()
+                            .limit(maxSize == 0 ? Integer.MAX_VALUE : maxSize)
+                            .collect(Collectors.toSet());
+
+                    Collection<BaseObject> values = hazelcastInstance.<String, BaseObject>getMap(topicName)
+                            .getAll(keys)
+                            .values();
+
+                    log.info("Values loaded [{}]", values.size());
+
+                    return values.stream();
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public IAtomicLong getSequence(String name) {
+        return hazelcastInstance.getAtomicLong(name);
+    }
+
+    @Override
+    public void markAsSent(Long sequence) {
+        hazelcastInstance.getSet("Sent_RB_Seq").add(sequence);
+    }
+
+    @Override
+    public boolean wasSent(Long sequence) {
+        return hazelcastInstance.getSet("Sent_RB_Seq").contains(sequence);
+    }
+
+    @Override
+    public Map<String, Collection<String>> getAllUuids(String clientId) {
+        MultiMap<String, String> userToSubs = hazelcastInstance.getMultiMap(HzConstants.Maps.USER_TO_SUBSCRIPTION);
+        Collection<String> subs = Optional.ofNullable(userToSubs.get(clientId)).orElse(Collections.emptyList());
+
+        if (subs.isEmpty()) {
+            return new HashMap<>();
+        }
+
+        MultiMap<String, String> subToIds = hazelcastInstance.getMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_IDS);
+        log.debug("Subs to ids size: [{}]", subToIds.size());
+
+        if (subToIds.size() == 0) {
+            log.debug("No data found");
+
+            return new HashMap<>();
+        }
+
+        return subs.stream()
+                .collect(Collectors.toMap(Function.identity(),
+                        topicName -> subToIds.get(createSubsToIdsKey(clientId, topicName))));
+    }
+
+    @Override
+    public Collection<BaseObject> get(String topicName, Set<String> uuids) {
+        log.debug("Fetching for [{}] uuids [{}]", topicName, uuids.size());
+
+        IMap<String, BaseObject> map = hazelcastInstance.getMap(topicName);
+
+        return Optional.ofNullable(map.getAll(uuids))
+                .orElse(new HashMap<>())
+                .values();
     }
 
     /**
@@ -83,8 +156,14 @@ public class HazelcastDataProvider implements DataProvider {
         return new ArrayList<>(result.values());
     }
 
+    @Override
+    public Collection<String> getAllIdFor(String clientId, String topicName) {
+        MultiMap<String, String> subToIds = hazelcastInstance.getMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_IDS);
+
+        return subToIds.get(createSubsToIdsKey(clientId, topicName));
+    }
+
     /**
-     *
      * @param topicName
      * @param baseObjects
      */
@@ -100,10 +179,8 @@ public class HazelcastDataProvider implements DataProvider {
 
         IMap<Object, Object> cache = hazelcastInstance.getMap(topicName);
 
+
         cache.putAll(baseObjects.stream()
-                .peek(o -> {
-                    log.debug("putting to {} k:{} v:{}", topicName, o.getUuid(), o);
-                })
                 .collect(Collectors.toMap(BaseObject::getUuid, Function.identity())));
 
         log.debug("{} objects added to topic [{}]", baseObjects.size(), topicName);
@@ -115,8 +192,6 @@ public class HazelcastDataProvider implements DataProvider {
 
         MultiMap<String, String> map = hazelcastInstance.getMultiMap(HzConstants.Maps.USER_TO_SUBSCRIPTION);
         map.put(clientId, subscription);
-
-        log.debug("Subscription [{}] created for [{}]", subscription, clientId);
     }
 
     /**
@@ -124,7 +199,7 @@ public class HazelcastDataProvider implements DataProvider {
      */
     @Override
     public void saveToMultiMap(String mapName, String key, Set<String> values) {
-        log.debug("Putting values to [{}] K:[{}] V:[{}]", mapName, key, values);
+        log.trace("Putting values to [{}] K:[{}] V:[{}]", mapName, key, values);
 
         MultiMap<String, String> map = hazelcastInstance.getMultiMap(mapName);
 
@@ -134,7 +209,7 @@ public class HazelcastDataProvider implements DataProvider {
     @Override
     public <K, V> void removeFromMultiMap(String mapName, Map<K, List<V>> entries) {
         if (entries.isEmpty()) {
-            log.info("Nothing to remove. Empty entries");
+            log.debug("Nothing to remove. Empty entries");
         }
 
         for (Map.Entry<K, List<V>> entry : entries.entrySet()) {
@@ -144,12 +219,12 @@ public class HazelcastDataProvider implements DataProvider {
 
     @Override
     public <K, V> void removeFromMultiMap(String mapName, K key, Collection<V> values) {
-        log.debug("Removing from [{}] v:[{}] for key [{}]", mapName, values, key);
+        log.debug("Removing from [{}] s:[{}] for key [{}]", mapName, values.size(), key);
 
         MultiMap<K, V> multiMap = hazelcastInstance.getMultiMap(mapName);
 
         for (V v : values) {
-            Collection<V> vs = multiMap.get(key);
+//            Collection<V> vs = multiMap.get(key);
 
             multiMap.remove(key, v);
         }
@@ -177,11 +252,37 @@ public class HazelcastDataProvider implements DataProvider {
         return hazelcastInstance.<String, BaseObject>getMap(topicName).keySet();
     }
 
+    @Override
+//    @SneakyThrows
+    public boolean tryLock(String lockName) {
+//        return hazelcastInstance.getLock(lockName).tryLock(0L, TimeUnit.SECONDS, 2L, TimeUnit.SECONDS);
+        return hazelcastInstance.getLock(lockName).tryLock();
+    }
+
+    @Override
+    public Ringbuffer<DataToSend> getRingBuffer(String ringBufName) {
+        return hazelcastInstance.getRingbuffer(ringBufName);
+    }
+
+    @Override
+    public ILock getLock(String lockName) {
+        return hazelcastInstance.getLock(lockName);
+    }
+
+    @Override
+    public void unlock(String lockName) {
+        hazelcastInstance.getLock(lockName).forceUnlock();
+    }
+
     public static String createSubsToIdsKey(String clientId, String topicName) {
         return clientId + "_" + topicName;
     }
 
     public static String getClientIdFromKey(String key) {
         return key.split("_")[0];
+    }
+
+    public static String[] getClientIdTopicFromKey(String key) {
+        return key.split("_");
     }
 }

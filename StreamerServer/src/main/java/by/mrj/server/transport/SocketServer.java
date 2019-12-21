@@ -1,4 +1,4 @@
-package by.mrj.server.transport.websocket.server;
+package by.mrj.server.transport;
 
 import by.mrj.client.transport.PortListener;
 import io.netty.bootstrap.ServerBootstrap;
@@ -20,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @RequiredArgsConstructor
-public class WebSocketServer implements PortListener {
+public class SocketServer implements PortListener {
 
     private final ChannelHandler webSocketServerInitializer;
     @Setter
@@ -36,6 +36,7 @@ public class WebSocketServer implements PortListener {
             try {
                 ServerBootstrap b = new ServerBootstrap();
                 b.group(bossGroup, workerGroup)
+                        // todo: make it flexible in case Linux/Epoll possible
                         .channel(NioServerSocketChannel.class)
                         .handler(new LoggingHandler(LogLevel.DEBUG))
                         .childHandler(webSocketServerInitializer);
@@ -46,6 +47,7 @@ public class WebSocketServer implements PortListener {
     //            log.info("Open your web browser and navigate to " +
     //                    (SSL ? "https" : "http") + "://127.0.0.1:" + PORT + '/');
 
+                // todo: close it when needed. F.i. when app stopped.
                 ch.closeFuture().sync();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);

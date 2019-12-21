@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -46,6 +47,10 @@ public class JsonJackson implements DataDeserializer, DataSerializer {
     }
 
     public static <T> T fromJson(String json, Class<T> clazz) {
+        if (StringUtils.isEmpty(json)) {
+            return null;
+        }
+
         try {
             return objectMapper.readValue(json, clazz);
         } catch (IOException e) {
@@ -86,5 +91,10 @@ public class JsonJackson implements DataDeserializer, DataSerializer {
     @Override
     public String serialize(Object obj) {
         return toJson(obj);
+    }
+
+    @Override
+    public String toString() {
+        return "JsonJackson";
     }
 }

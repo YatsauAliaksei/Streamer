@@ -7,8 +7,8 @@
               class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>
-                %d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n
-                <!--%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n-->
+                <!--%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n-->
+                %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
             </pattern>
         </encoder>
     </appender>
@@ -18,9 +18,9 @@
         <appender-ref ref="CONSOLE"/>
     </appender>
 
-    <logger name="by.mrj" level="info"/>
+    <logger name="by.mrj" level="debug"/>
     <logger name="ch.qos.logback" level="INFO"/>
-    <logger name="io.netty" level="INFO"/>
+    <logger name="io.netty" level="info"/>
     <logger name="org.springframework" level="INFO"/>
     <logger name="org.springframework.context.annotation" level="WARN"/>
     <logger name="org.hibernate" level="WARN"/>

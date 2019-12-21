@@ -1,4 +1,4 @@
-package by.mrj.server.service.subscription;
+package by.mrj.server.hz.listener;
 
 import by.mrj.server.data.DataProvider;
 import by.mrj.server.data.HazelcastDataProvider;

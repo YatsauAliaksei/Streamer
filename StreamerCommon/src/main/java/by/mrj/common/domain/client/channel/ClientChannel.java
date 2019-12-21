@@ -17,4 +17,8 @@ public interface ClientChannel {
     void flush();
 
     Channel getChannel();
+
+    default void close() {
+
+    }
 }

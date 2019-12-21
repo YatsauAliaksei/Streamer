@@ -3,7 +3,7 @@ package by.mrj.server.topic;
 import by.mrj.common.domain.streamer.Topic;
 import by.mrj.common.serialization.DataDeserializer;
 import by.mrj.server.data.DataProvider;
-import by.mrj.server.service.subscription.NewTopicEntriesListener;
+import by.mrj.server.hz.listener.NewTopicEntriesListener;
 import io.netty.buffer.ByteBuf;
 import io.netty.util.CharsetUtil;
 import lombok.RequiredArgsConstructor;

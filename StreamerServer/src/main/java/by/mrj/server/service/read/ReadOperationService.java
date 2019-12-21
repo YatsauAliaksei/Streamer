@@ -5,19 +5,13 @@ import by.mrj.common.domain.Point;
 import by.mrj.common.domain.client.DataClient;
 import by.mrj.common.domain.streamer.Topic;
 import by.mrj.common.serialization.DataDeserializer;
-import by.mrj.server.data.DataProvider;
-import by.mrj.server.data.HazelcastDataProvider;
-import by.mrj.server.data.HzConstants;
 import by.mrj.server.security.SecurityUtils;
 import by.mrj.server.service.register.ClientRegister;
-import by.mrj.server.service.sender.BasicClientSender;
+import by.mrj.server.service.sender.LockingSender;
 import by.mrj.server.topic.TopicService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Component
@@ -25,10 +19,9 @@ import java.util.Map;
 public class ReadOperationService {
 
     private final DataDeserializer dataDeserializer;
-    private final DataProvider dataProvider;
     private final ClientRegister clientRegister;
     private final TopicService topicService;
-    private final BasicClientSender basicClientSender;
+    private final LockingSender lockingSender;
 
     // todo: probably only needed to fix state if something goes wrong
     public void read(Object msgBody) {
@@ -55,25 +48,13 @@ public class ReadOperationService {
 
             client.getTopics().put(topicName, topic);
         }
-
-
-//        topic.readFrom(point.getSeqNumber(), point.getMaxDataSize());
-
-//        clientRegistration(dataClient);
-
-//        streamChannel.writeAndFlush("Connection succeeded");
-//        break;
-
     }
 
     public void readAll() {
-
+//        log.info("After getting connection it should start working from ");
         String currentUserLogin = SecurityUtils.getCurrentUserLogin()
                 .orElseThrow((() -> new IllegalStateException("Unauthorized user"))); // fixme: should not ever happen here. Do we really need Optional here
 
-        Map<String, List<String>> sentUuids = basicClientSender.sendTo(currentUserLogin, () -> dataProvider.getAllForUser(currentUserLogin, 0),
-                (tn) -> HazelcastDataProvider.createSubsToIdsKey(currentUserLogin, tn.toUpperCase()));
-
-        dataProvider.removeFromMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_IDS, sentUuids);
+        lockingSender.sendAndRemove(currentUserLogin);
     }
 }

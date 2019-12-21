@@ -1,10 +1,9 @@
-package by.mrj.server.service.subscription;
+package by.mrj.server.hz.listener;
 
 import by.mrj.common.domain.data.BaseObject;
 import by.mrj.server.data.DataProvider;
 import by.mrj.server.data.HazelcastDataProvider;
 import by.mrj.server.data.HzConstants;
-import by.mrj.server.service.sender.BasicClientSender;
 import com.google.common.collect.Sets;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.listener.EntryAddedListener;
@@ -24,7 +23,7 @@ public class NewTopicEntriesListener implements EntryAddedListener<String, BaseO
 
     @Override
     public void entryAdded(EntryEvent<String, BaseObject> event) {
-        log.debug("Topic Added. Entry event [{}] found", event);
+        log.trace("Topic Added. Entry event [{}] found", event);
 
         String topicName = (String) event.getSource();
         Set<String> clientIds =  dataProvider.getAllClientsForSub(topicName);
@@ -32,7 +31,7 @@ public class NewTopicEntriesListener implements EntryAddedListener<String, BaseO
         clientIds.forEach(id -> {
             String subsToIdsKey = HazelcastDataProvider.createSubsToIdsKey(id, topicName);
 
-            log.debug("Subs to id updated for [{}] id [{}]", subsToIdsKey, event.getKey());
+            log.trace("Subs to id updated for [{}] id [{}]", subsToIdsKey, event.getKey());
 
             dataProvider.saveToMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_IDS,
                     subsToIdsKey, Sets.newHashSet(event.getKey()));
@@ -42,7 +41,7 @@ public class NewTopicEntriesListener implements EntryAddedListener<String, BaseO
 
     @Override
     public void entryUpdated(EntryEvent<String, BaseObject> event) {
-        log.debug("Topic Updated. Entry event [{}] found", event);
+        log.trace("Topic Updated. Entry event [{}] found", event);
 
         entryAdded(event);
     }

@@ -16,13 +16,11 @@ public class ByteBufUtils {
 
     public static ByteBuf create(DataSerializer serializer, MessageHeader messageHeader, Message<?> msg) {
 
-        ByteBuf header = Unpooled.buffer();
-        // todo: support not only to String serialization
-        header.writeCharSequence((String) serializer.serialize(messageHeader), CharsetUtil.UTF_8);
+//        ByteBuf header = Unpooled.buffer();
+//        header.writeCharSequence((String) serializer.serialize(messageHeader), CharsetUtil.UTF_8);
 
         ByteBuf body = Unpooled.buffer();
-        // todo: support not only to String serialization
-        body.writeCharSequence((String) serializer.serialize(msg.getPayload()), CharsetUtil.UTF_8);
+        body.writeCharSequence(serializer.serialize(msg.getPayload()), CharsetUtil.UTF_8);
 
         ByteBuf message = Unpooled.wrappedBuffer(2,
                 Unpooled.buffer(4, 4).writeInt(messageHeader.getCommand().ordinal()), // header size
@@ -36,16 +34,17 @@ public class ByteBufUtils {
     public static ByteBuf createPost(List<BaseObject> postData) {
 
         ByteBuf msg = Unpooled.buffer();
-        // todo: support not only to String serialization
         msg.writeInt(Command.POST.ordinal());
         msg.writeCharSequence(JsonJackson.toJson(postData), CharsetUtil.UTF_8);
 
         return msg;
     }
 
-    public static ByteBuf createRead(List<BaseObject> baseObj) {
+    public static ByteBuf createAuth() {
+
         ByteBuf msg = Unpooled.buffer();
-        msg.writeCharSequence(JsonJackson.toJson(baseObj), CharsetUtil.UTF_8);
+        msg.writeInt(Command.AUTHORIZE.ordinal());
+
         return msg;
     }
 

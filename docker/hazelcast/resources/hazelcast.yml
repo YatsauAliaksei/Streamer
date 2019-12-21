@@ -7,3 +7,11 @@ hazelcast:
   group:
     name: hz-group
 
+  ringbuffer:
+    rb_jobs:
+      capacity: 10000
+      # time-to-live-seconds: 180
+      in-memeory-format: BINARY
+
+
+

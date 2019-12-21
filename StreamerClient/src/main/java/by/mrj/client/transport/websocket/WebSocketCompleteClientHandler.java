@@ -1,9 +1,17 @@
 package by.mrj.client.transport.websocket;
 
-import io.netty.channel.*;
-import io.netty.handler.codec.http.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketHandshakeException;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -11,6 +19,8 @@ public class WebSocketCompleteClientHandler extends SimpleChannelInboundHandler<
 
     private final WebSocketClientHandshaker handshaker;
     private ChannelPromise handshakeFuture;
+    @Getter
+    private String authHeader;
 
     public WebSocketCompleteClientHandler(WebSocketClientHandshaker handshaker) {
         this.handshaker = handshaker;
@@ -24,6 +34,9 @@ public class WebSocketCompleteClientHandler extends SimpleChannelInboundHandler<
             try {
                 DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, msg.status());
                 response.headers().add(msg.headers());
+
+                // todo: while we don't have JWT time limit this works
+                authHeader = msg.headers().get(HttpHeaderNames.AUTHORIZATION);
 
                 handshaker.finishHandshake(ch, response);
                 log.debug("WebSocket Client connected!");

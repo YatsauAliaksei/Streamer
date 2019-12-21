@@ -15,9 +15,12 @@
 
 logging:
   level:
-    ROOT: DEBUG
-    io.github.jhipster: DEBUG
-    by.mrj: DEBUG
+    ROOT: debug
+    io.github.jhipster: INFO
+    by.mrj: INFO
+    by.mrj.server.service.sender.LockingSender: DEBUG
+    by.mrj.server.job.RingBufferRegister: DEBUG
+    com.netflix.concurrency.limits: DEBUG
 
 spring:
   profiles:

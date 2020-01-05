@@ -40,7 +40,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 public class HttpStreamingChannel implements ClientChannel {
 
     // fixme: totally wrong
-    private final Queue<ByteBuf> chunks = new ConcurrentLinkedQueue<>();// new ArrayDeque<>();
+    private final Queue<ByteBuf> chunks = new ConcurrentLinkedQueue<>();
 
     private final Channel channel;
     private final ConnectionInfo connectionInfo;
@@ -111,6 +111,7 @@ public class HttpStreamingChannel implements ClientChannel {
             @Override
             public HttpContent readChunk(ByteBufAllocator allocator) throws Exception {
                 log.debug("Read chunk...");
+
                 if (chunks.isEmpty()) {
                     log.debug("No chunks found");
                     return null;
@@ -124,7 +125,10 @@ public class HttpStreamingChannel implements ClientChannel {
 
                 buf.retain();
 
-                log.debug("Read chunk [{}]", buf.toString(CharsetUtil.UTF_8));
+                if (log.isInfoEnabled()) {
+                    log.info("Read chunk [{}]", buf.toString(CharsetUtil.UTF_8));
+                }
+
                 return new DefaultHttpContent(buf);
             }
         };

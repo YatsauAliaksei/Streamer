@@ -1,16 +1,23 @@
 package by.mrj.it.client;
 
 import by.mrj.client.connection.ConnectionManager;
+import by.mrj.client.service.MessageConsumer;
+import by.mrj.client.transport.ServerChannel;
 import by.mrj.client.transport.ServerChannelHolder;
-import by.mrj.common.domain.ConnectionType;
+import by.mrj.common.domain.Statistic;
 import by.mrj.common.domain.client.ConnectionInfo;
 import com.google.common.collect.Lists;
 import io.reactivex.Single;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 
 @Slf4j
@@ -18,6 +25,8 @@ public abstract class AbstractStreamerReadTest {
 
     @Autowired
     private ConnectionManager connectionManager;
+    @Autowired
+    private MessageConsumer messageConsumer;
 
     @Value("${streamer.port}")
     @Getter
@@ -26,40 +35,70 @@ public abstract class AbstractStreamerReadTest {
     @Getter
     private String host; // todo: hosts
 
-    @Test
-    public void read() {
+    public ServerChannel read(ConnectionInfo connectionInfo) {
 
-        log.info("Starting READ {}", connectionInfo());
+        log.debug("Starting READ {}", connectionInfo);
 
-        Single<ServerChannelHolder> serverChannelHolderSingle = connectionManager.connect(connectionInfo());
+        Single<ServerChannelHolder> serverChannelHolderSingle = connectionManager.connect(connectionInfo);
         ServerChannelHolder channelHolder = serverChannelHolderSingle.blockingGet();
-        log.info("Connection created. [{}]", channelHolder);
+        log.debug("Connection created. [{}]", channelHolder);
 
-        log.debug("Sending connect message...");
-//        ServerChannelHolder channel = connectionManager.findChannel(connectionInfo);
+        log.debug("Sending subscribe message...");
 
-//        assertThat(channel).isNotNull();
-//        assertThat(channel.rawChannel()).isNotNull();
+        String topic = "First";
+        String login = connectionInfo.getLogin();
 
-        channelHolder.subscribe(Lists.newArrayList("First")).syncUninterruptibly();
-        log.info("Subscribed");
+        channelHolder.subscribe(Lists.newArrayList(topic)).syncUninterruptibly();
+        log.debug("[{}] subscribed to [{}]", login, topic);
 
-        if (connectionInfo().getConnectionType() != ConnectionType.WS) {
-            channelHolder.readAll();
-        }
+        channelHolder.readAll();
+        log.debug("Reading all for [{}]", login);
 
-/*        channel.send(
-                Message.<String[]>builder()
-                        .payload(new String[]{"First"})
-                        .build(),
-                MessageHeader
-                        .builder()
-                        .command(Command.SUBSCRIBE)
-                        .build()).syncUninterruptibly();*/
-
-
-        channelHolder.getChannel().closeFutureSync();
+        return channelHolder.getChannel();
     }
 
-    protected abstract ConnectionInfo connectionInfo();
+    @Test
+    @SneakyThrows
+    public void readMultiple() {
+        List<ConnectionInfo> connectionInfos = connectionInfo();
+
+        log.info("Starting creation of [{}] readers", connectionInfos.size());
+
+        ServerChannel[] block = new ServerChannel[1];
+
+        for (ConnectionInfo connectionInfo : connectionInfos) {
+            new Thread(() -> {
+                ServerChannel serverChannel = read(connectionInfo);
+                if (block[0] == null) {
+                    block[0] = serverChannel;
+                }
+                serverChannel.closeFutureSync();
+            }).start();
+
+//            Thread.sleep(20);
+        }
+
+        log.info("All {} consumers ready...", connectionInfos.size());
+
+        Thread.sleep(1_000);
+
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+
+            try {
+
+                Statistic statistic = messageConsumer.statistics();
+                log.info("Stats: {}", statistic);
+
+            } catch (Exception e) {
+                log.error("Error while getting stats.", e);
+            }
+
+        }, 10L, 10L, TimeUnit.SECONDS);
+
+        log.info("Blocking...");
+
+        block[0].closeFutureSync();
+    }
+
+    protected abstract List<ConnectionInfo> connectionInfo();
 }

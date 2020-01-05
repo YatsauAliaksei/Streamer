@@ -36,7 +36,7 @@ public class AuthenticationHttpHandler extends SimpleChannelInboundHandler<HttpR
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, HttpResponse response) throws Exception {
-        log.info("LongPolling Http Client received message: [{}]", response);
+        log.debug("LongPolling Http Client received message: [{}]", response);
 
         String jwt = response.headers().get(HttpHeaderNames.AUTHORIZATION);
 

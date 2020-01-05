@@ -35,13 +35,13 @@ public class StreamerController implements CommandListener {
     @Override
     public void processRequest(Command command, ByteBuf msgBody, ClientChannel streamChannel) {
 //        MessageHeader header = dataDeserializer.deserialize(msgHeader, MessageHeader.class);
-        log.info("Command received [{}]", command);
+        log.debug("Command received [{}]", command);
 
         String currentUserLogin = SecurityUtils.getCurrentUserLogin()
                 .orElseThrow(() -> new UnsupportedOperationException("Not logged in user detected.")); // fixme: special Exception type
 
         clientRegistration(DataClient.builder()
-                .id(currentUserLogin)
+                .id(currentUserLogin.toUpperCase())
                 .streamingChannel(streamChannel)
                 .build());
 

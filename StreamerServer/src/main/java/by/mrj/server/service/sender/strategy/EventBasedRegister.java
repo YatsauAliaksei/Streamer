@@ -21,9 +21,9 @@ public class EventBasedRegister {
     private final RingBufferRegister ringBufferRegister;
 
     public void eventBased(String clientId) {
-        Map<String, Collection<String>> uuids = dataProvider.getAllUuids(clientId);
+        Map<String, Collection<Long>> uuids = dataProvider.getAllUuids(clientId);
 
-        for (Map.Entry<String, Collection<String>> entry : uuids.entrySet()) {
+        for (Map.Entry<String, Collection<Long>> entry : uuids.entrySet()) {
             var data = new DataToSend(clientId, entry.getKey(), new HashSet<>(entry.getValue()));
             ringBufferRegister.register(data);
         }

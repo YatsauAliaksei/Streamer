@@ -20,5 +20,5 @@ public class DataToSend implements Serializable {
     private String clientId;
     private String topicName;
     @Builder.Default
-    private Set<String> uuids = new HashSet<>();
+    private Set<Long> ids = new HashSet<>();
 }

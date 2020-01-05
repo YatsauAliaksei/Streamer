@@ -4,6 +4,7 @@ import by.mrj.common.domain.client.DataClient;
 import by.mrj.common.domain.client.channel.ClientChannel;
 import by.mrj.common.domain.data.BaseObject;
 import by.mrj.common.serialization.DataSerializer;
+import by.mrj.common.utils.DataUtils;
 import by.mrj.server.service.register.ClientRegister;
 import com.netflix.concurrency.limits.Limiter;
 import com.netflix.concurrency.limits.limit.VegasLimit;
@@ -11,16 +12,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 @Log4j2
 @Component
@@ -29,22 +26,20 @@ public class BasicClientSender {
 
     private final ClientRegister clientRegister;
     private final DataSerializer dataSerializer;
-//    private final SendJobRegister jobRegister;
-//    private final DataProvider dataProvider;
 
     private VegasLimit limit = VegasLimit.newBuilder()
-            .initialLimit(1000)
-            .maxConcurrency(4000)
+            .initialLimit(3_000)
+            .maxConcurrency(10_000)
             .build();
 
     private SendLimiter limiter = SendLimiter.newBuilder().limit(limit).build();
 
     /**
      * Sends to {@param clientId} data returned from {@param dataToSend} supplier
-     * @return - returns transformed by {@param transformer} topic name as a key and list {@link BaseObject#uuid}
+     * @return - returns transformed by {@param transformer} topic name as a key and list {@link BaseObject#id}
      * which were sent to {@param clientId}
      */
-    public Map<String, List<String>> sendTo(String clientId, Function<Integer, Collection<? extends BaseObject>> dataToSend, Function<String, String> transformer) {
+    public Map<String, List<Long>> sendTo(String clientId, Function<Integer, Collection<BaseObject>> dataToSend, Function<String, String> transformer) {
         Optional<Limiter.Listener> acquire = limiter.acquire(null);
 
         if (!acquire.isPresent()) {
@@ -54,10 +49,10 @@ public class BasicClientSender {
         }
 
         int limit = limiter.getLimit();
-        Collection<? extends BaseObject> objects = dataToSend.apply(limit);
+        Collection<BaseObject> objects = dataToSend.apply(limit); // todo: fixme
 
         if (objects == null || objects.isEmpty()) {
-            log.info("No data found to be sent");
+            log.debug("No data found to be sent");
 
             return new HashMap<>();
         }
@@ -65,21 +60,11 @@ public class BasicClientSender {
         DataClient dataClient = clientRegister.findBy(clientId);
         ClientChannel streamingChannel = dataClient.getStreamingChannel();
 
-        log.debug("Is about to send [{}] objects to [{}]", objects.size(), dataClient);
+        log.debug("Sending {} objects with limit {} to {}", objects.size(), limit, clientId);
 
-        log.info("Sending {} objects with limit {}", objects.size(), limit);
         streamingChannel.writeAndFlush(dataSerializer.serialize(objects));
 
-        Map<String, List<String>> sentObjs = objects.stream()
-                .collect(Collectors.groupingBy(bo -> transformer.apply(bo.getTopic()),
-                        Collector.of(
-                                (Supplier<List<String>>) ArrayList::new,
-                                (uuids, bo) -> uuids.add(bo.getUuid()),
-                                (left, right) -> {
-                                    left.addAll(right);
-                                    return left;
-                                },
-                                Collector.Characteristics.IDENTITY_FINISH)));
+        Map<String, List<Long>> sentObjs = DataUtils.topicToIds(objects, transformer);
 
         Limiter.Listener listener = acquire.get();
         listener.onSuccess();
@@ -87,7 +72,26 @@ public class BasicClientSender {
         return sentObjs;
     }
 
-    public Map<String, List<String>> sendTo(String clientId, Function<Integer, Collection<? extends BaseObject>> dataToSend) {
+    public void send(String clientId, Object objToSend) {
+
+        DataClient dataClient = clientRegister.findBy(clientId);
+        if (dataClient == DataClient.DUMMY) {
+            log.info("No client [{}] found", clientId);
+            return;
+        }
+
+        ClientChannel streamingChannel = dataClient.getStreamingChannel();
+        if (!streamingChannel.getChannel().isActive()) {
+            log.info("No active channel for [{}] found", clientId);
+            return;
+        }
+
+        log.debug("Is about to send [{}] objects to [{}]", objToSend, dataClient);
+
+        streamingChannel.writeAndFlush(dataSerializer.serialize(objToSend));
+    }
+
+    public Map<String, List<Long>> sendTo(String clientId, Function<Integer, Collection<BaseObject>> dataToSend) {
         return sendTo(clientId, dataToSend, Function.identity());
     }
 }

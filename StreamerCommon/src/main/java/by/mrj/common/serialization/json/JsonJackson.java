@@ -3,6 +3,7 @@ package by.mrj.common.serialization.json;
 import by.mrj.common.domain.Message;
 import by.mrj.common.serialization.DataDeserializer;
 import by.mrj.common.serialization.DataSerializer;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -23,7 +24,7 @@ public class JsonJackson implements DataDeserializer, DataSerializer {
 
     static {
         // to enable standard indentation ("pretty-printing"):
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+//        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         // to allow serialization of "empty" POJOs (no properties to serialize)
         // (without this setting, an exception is thrown in those cases)
         objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
@@ -33,7 +34,7 @@ public class JsonJackson implements DataDeserializer, DataSerializer {
         // DeserializationFeature for changing how JSON is read as POJOs:
         // to prevent exception when encountering unknown property:
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-//        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     public static String toJson(Object obj) {

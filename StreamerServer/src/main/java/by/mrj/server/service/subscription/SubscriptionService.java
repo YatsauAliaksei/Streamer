@@ -1,11 +1,15 @@
 package by.mrj.server.service.subscription;
 
+import by.mrj.common.domain.data.BaseObject;
 import by.mrj.common.domain.streamer.Topic;
 import by.mrj.common.serialization.DataDeserializer;
 import by.mrj.server.data.DataProvider;
-import by.mrj.server.security.SecurityUtils;
 import by.mrj.server.data.HzConstants;
-import by.mrj.server.topic.TopicDataProvider;
+import by.mrj.server.data.domain.Subscription;
+import by.mrj.server.security.SecurityUtils;
+import by.mrj.server.service.ListService;
+import by.mrj.server.service.MultiMapService;
+import by.mrj.server.service.sender.BasicClientSender;
 import by.mrj.server.topic.TopicService;
 import com.google.common.collect.Sets;
 import com.hazelcast.core.EntryEvent;
@@ -36,8 +40,11 @@ public class SubscriptionService {
 
     private final DataDeserializer dataDeserializer;
     private final DataProvider dataProvider;
+    private final MultiMapService multiMapService;
     private final HazelcastInstance hazelcastInstance;
     private final TopicService topicService;
+    private final BasicClientSender basicClientSender;
+    private final ListService listService;
 
     public void subscribe(ByteBuf msgBody) {
 
@@ -48,7 +55,7 @@ public class SubscriptionService {
                 .orElseThrow((() -> new IllegalStateException("Unauthorized user"))); // fixme: should not ever happen here. Do we really need Optional here
 
         if (log.isInfoEnabled()) {
-            log.info("Subscribing client [{}] to topics [{}]", currentUserLogin, Arrays.toString(topicsToSubscribe));
+            log.debug("Subscribing client [{}] to topics [{}]", currentUserLogin, Arrays.toString(topicsToSubscribe));
         }
 
         for (String sub : topicsToSubscribe) {
@@ -59,11 +66,25 @@ public class SubscriptionService {
                 continue;
             }
 
-            dataProvider.addSubscription(currentUserLogin, topic.getName());
-            dataProvider.saveToMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_USER, topic.getName(), Sets.newHashSet(currentUserLogin));
+            String topicName = topic.getName();
+            dataProvider.addSubscription(currentUserLogin, topicName);
+            multiMapService.saveToMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_USER, topicName, Sets.newHashSet(currentUserLogin));
+
+            Subscription subscription = new Subscription(currentUserLogin, topicName);
+
+            Set<Long> values = dataProvider.getKeysForTopic(topicName);
+
+            log.trace("Subs to id updated for [{}] ids [{}]", subscription, values);
+
+            listService.add(subscription.mapName(), values);
         }
+
+        basicClientSender.send(currentUserLogin, new BaseObject[]{
+                BaseObject.builder().payload("Subscribed").build()
+        });
     }
 
+    // todo: fixme
     public void unsubscribe(ByteBuf msgBody) {
         List<String> topicsToUnSubscribe =
                 Arrays.asList(dataDeserializer.deserialize(msgBody.toString(CharsetUtil.UTF_8), String[].class));
@@ -91,52 +112,5 @@ public class SubscriptionService {
                 return null;
             }
         });
-    }
-
-    private void addTopicListeners(String[] topicsToSubscribe, IMap<String, Set<String>> userToSubs) {
-        for (String topic : topicsToSubscribe) {
-            IMap<Object, Object> map = hazelcastInstance.getMap(topic);
-
-            map.addEntryListener((EntryAddedListener) event -> {
-
-                log.debug("'Add' event at [{}] occurred", topic);
-
-                updateUserSubs(userToSubs, topic, event);
-            }, false);
-
-
-            map.addEntryListener((EntryUpdatedListener) event -> {
-
-                log.debug("'Update' event at [{}] occurred", topic);
-
-                updateUserSubs(userToSubs, topic, event);
-            }, false);
-        }
-    }
-
-    private void updateUserSubs(IMap<String, Set<String>> userToSubs, String topic, EntryEvent event) {
-        userToSubs.executeOnKey(topic, new EntryUpdateProcessor(topic, event));
-    }
-
-    @AllArgsConstructor
-    private static class EntryUpdateProcessor implements EntryProcessor<String, Map<String, Set<String>>>, Serializable {
-
-        private String topic;
-        private EntryEvent event;
-
-        @Override
-        public Object process(Map.Entry<String, Map<String, Set<String>>> entry) {
-            Map<String, Set<String>> value = entry.getValue();
-            Set<String> ids = value.computeIfAbsent(topic, k -> new HashSet<>());
-            ids.add((String) event.getKey());
-            entry.setValue(value);
-
-            return null;
-        }
-
-        @Override
-        public EntryBackupProcessor getBackupProcessor() {
-            return null;
-        }
     }
 }

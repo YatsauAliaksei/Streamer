@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class BasicData {
-    private int id;
-    private String name;
-    private String uuid;
+    private String key;
+    private String value;
+    private long created;
 }

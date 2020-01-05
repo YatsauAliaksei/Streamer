@@ -47,7 +47,6 @@ public class StreamingClientChannelFactory implements ClientChannelFactory {
         final Integer port = connectionInfo.getPort();
         final SslContext sslCtx = connectionInfo.getSslCtx();
 
-        var handler = new StreamingClientTextHandler(messageConsumer);
         var authHandler = new AuthenticationHttpHandler();
 
         Bootstrap b = new Bootstrap();
@@ -62,11 +61,10 @@ public class StreamingClientChannelFactory implements ClientChannelFactory {
                             p.addLast(sslCtx.newHandler(ch.alloc(), host, port));
                         }
                         p.addLast(new HttpClientCodec());
-//                                    WebSocketClientCompressionHandler.INSTANCE,
-                        p.addLast(authHandler);
+                        p.addLast("authorizationHandler", authHandler);
                         p.addLast(new StreamingClientDefaultResponseContentHandler());
-                        p.addLast(new StreamingClientTextContentHandler(messageConsumer));
-                        p.addLast(handler);
+                        p.addLast("httpContent", new StreamingClientHttpContentHandler(messageConsumer, connectionInfo));
+                        p.addLast("fullResponse", new StreamingClientFullResponseHandler(messageConsumer, connectionInfo));
                         p.addLast(new SimpleChannelInboundHandler<Object>() {
                             @Override
                             protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -89,7 +87,7 @@ public class StreamingClientChannelFactory implements ClientChannelFactory {
 
             Channel channel = channelFuture.sync().channel();
 
-            StreamingServerChannel streamingServerChannel = new StreamingServerChannel(channel, dataSerializer, handler);
+            StreamingServerChannel streamingServerChannel = new StreamingServerChannel(channel, dataSerializer);
 
             authorize(connectionInfo, authHandler, streamingServerChannel);
 

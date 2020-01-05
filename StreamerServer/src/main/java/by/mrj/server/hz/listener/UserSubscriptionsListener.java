@@ -3,9 +3,11 @@ package by.mrj.server.hz.listener;
 import by.mrj.server.data.DataProvider;
 import by.mrj.server.data.HazelcastDataProvider;
 import by.mrj.server.data.HzConstants;
+import by.mrj.server.service.MultiMapService;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.MapEvent;
+import com.hazelcast.core.MultiMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,6 +20,7 @@ import java.util.Set;
 public class UserSubscriptionsListener implements EntryListener<String, String> {
 
     private final DataProvider dataProvider;
+    private final MultiMapService multiMapService;
 
     @Override
     public void entryAdded(EntryEvent<String, String> event) {
@@ -27,15 +30,15 @@ public class UserSubscriptionsListener implements EntryListener<String, String> 
 
         log.debug("New subscription [{}] created for [{}]", topic, clientId);
 
-        Set<String> keys = dataProvider.getKeysForTopic(topic);
+        Set<Long> keys = dataProvider.getKeysForTopic(topic);
 
         if (keys.isEmpty()) {
-            log.info("No data found to update subs to id");
+            log.debug("No data found to update subs to id");
             return;
         }
 
-        dataProvider.saveToMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_IDS,
-                HazelcastDataProvider.createSubsToIdsKey(clientId, topic), keys);
+//        multiMapService.saveToMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_IDS,
+//                HazelcastDataProvider.createSubsToIdsKey(clientId, topic), keys);
 
         log.debug("Subs to ids updated with [{}]", keys);
     }
@@ -68,6 +71,6 @@ public class UserSubscriptionsListener implements EntryListener<String, String> 
     public String register() {
         log.warn("Registering User -> Subscription listener.");
 
-        return dataProvider.registerListener(HzConstants.Maps.USER_TO_SUBSCRIPTION, this, true);
+        return multiMapService.registerListener(HzConstants.Maps.USER_TO_SUBSCRIPTION, this, true);
     }
 }

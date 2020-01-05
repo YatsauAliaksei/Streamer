@@ -5,6 +5,7 @@ import by.mrj.common.domain.Point;
 import by.mrj.common.domain.client.DataClient;
 import by.mrj.common.domain.streamer.Topic;
 import by.mrj.common.serialization.DataDeserializer;
+import by.mrj.server.job.RingBufferEventRegister;
 import by.mrj.server.security.SecurityUtils;
 import by.mrj.server.service.register.ClientRegister;
 import by.mrj.server.service.sender.LockingSender;
@@ -22,6 +23,7 @@ public class ReadOperationService {
     private final ClientRegister clientRegister;
     private final TopicService topicService;
     private final LockingSender lockingSender;
+    private final RingBufferEventRegister ringBufferEventRegister;
 
     // todo: probably only needed to fix state if something goes wrong
     public void read(Object msgBody) {
@@ -55,6 +57,7 @@ public class ReadOperationService {
         String currentUserLogin = SecurityUtils.getCurrentUserLogin()
                 .orElseThrow((() -> new IllegalStateException("Unauthorized user"))); // fixme: should not ever happen here. Do we really need Optional here
 
-        lockingSender.sendAndRemove(currentUserLogin);
+        ringBufferEventRegister.register(currentUserLogin);
+//        lockingSender.sendAndRemove(currentUserLogin);
     }
 }

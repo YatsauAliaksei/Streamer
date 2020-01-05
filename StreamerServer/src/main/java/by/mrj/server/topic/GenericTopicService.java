@@ -18,7 +18,7 @@ public class GenericTopicService implements TopicService {
     private final DataProvider dataProvider;
     private final DataDeserializer dataDeserializer;
     private final TopicDataProvider topicDataProvider;
-    private final NewTopicEntriesListener newTopicEntriesListener;
+//    private final NewTopicEntriesListener newTopicEntriesListener;
 
     @Override
     public Topic createTopic(ByteBuf msgBody) {
@@ -35,7 +35,7 @@ public class GenericTopicService implements TopicService {
     public Topic createTopic(String topicName) {
         Topic topic = topicDataProvider.createTopic(topicName);
 
-        dataProvider.registerListener(topic.getName(), newTopicEntriesListener, false);
+//        dataProvider.registerListener(topic.getName(), newTopicEntriesListener, false);
 
         log.info("Registering Topic listener for [{}]", topic.getName());
 

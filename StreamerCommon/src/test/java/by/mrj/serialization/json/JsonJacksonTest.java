@@ -1,17 +1,23 @@
 package by.mrj.serialization.json;
 
 import by.mrj.common.domain.Message;
+import by.mrj.common.domain.data.BaseObject;
 import by.mrj.common.serialization.json.JsonJackson;
+import by.mrj.common.utils.DataUtils;
 import org.junit.jupiter.api.Test;
+
+import java.time.Instant;
 
 class JsonJacksonTest {
     JsonJackson jackson = new JsonJackson();
 
     @Test
     void deserialize() {
-        String hi = jackson.serialize(Message.<String>builder().payload("Hi").build());
+//        String hi = jackson.serialize(Message.<String>builder().payload("Hi").build());
+        String hi = jackson.serialize(DataUtils.createNewData("First", null, Instant.now().toEpochMilli()));
+        System.out.println("Serialized: " + hi);
 
-        Message<String> msg = jackson.deserializeMessage(hi, String.class);
+        BaseObject msg = jackson.deserialize(hi, BaseObject.class);
         System.out.println(msg);
 
     }

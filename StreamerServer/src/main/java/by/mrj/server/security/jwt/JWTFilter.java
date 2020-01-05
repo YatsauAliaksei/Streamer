@@ -42,7 +42,7 @@ public class JWTFilter {
         String jwt = resolveTokenJwt(token);
         String basic;
 
-        if (tokenProvider.validateToken(jwt)) {
+        if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
             authenticate(jwt);
         } else if (StringUtils.hasText(basic = resolveTokenBasic(token))) {
             jwt = createJwt(basic);
@@ -78,7 +78,7 @@ public class JWTFilter {
     }
 
     private String resolveTokenJwt(String token) {
-        if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
+        if (token.startsWith("Bearer ")) {
             return token.substring(7);
         }
         return "";

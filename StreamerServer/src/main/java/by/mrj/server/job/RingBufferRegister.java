@@ -6,7 +6,7 @@ import by.mrj.server.data.HazelcastDataProvider;
 import by.mrj.server.data.HzConstants;
 import by.mrj.server.data.domain.DataToSend;
 import by.mrj.server.data.domain.SendStatus;
-import by.mrj.server.service.register.NewClientRegistrationListener;
+import by.mrj.server.service.MultiMapService;
 import by.mrj.server.service.sender.LockingSender;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.hazelcast.core.ExecutionCallback;
@@ -38,6 +38,7 @@ public class RingBufferRegister implements InitializingBean /*, NewClientRegistr
 
     private final DataProvider dataProvider;
     private final LockingSender lockingSender;
+    private final MultiMapService multiMapService;
     private final BlockingQueue<Long> queue = new LinkedBlockingQueue<>();
 
     @Setter
@@ -46,9 +47,9 @@ public class RingBufferRegister implements InitializingBean /*, NewClientRegistr
     private ScheduledExecutorService scheduledExecutorPool = Executors.newScheduledThreadPool(8, new ThreadFactoryBuilder().setNameFormat("reg-scheduled-%d").build());
 
     public void register(DataToSend data) {
-        log.debug("Registering send job for [{}] size [{}]", data.getClientId(), data.getUuids().size());
+        log.debug("Registering send job for [{}] size [{}]", data.getClientId(), data.getIds().size());
 
-        Ringbuffer<DataToSend> rb = dataProvider.getRingBuffer(RB_JOBS);
+        Ringbuffer<DataToSend> rb = dataProvider.getRingBuffer(RB_JOBS + "_TMP", DataToSend.class);
         rb.addAsync(data, OverflowPolicy.OVERWRITE)
                 .andThen(new ExecutionCallback<Long>() {
 
@@ -61,20 +62,20 @@ public class RingBufferRegister implements InitializingBean /*, NewClientRegistr
                              public void onFailure(Throwable t) {
                                  log.error("Failed.", t);
 
-                                 dataProvider.saveToMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_IDS,
-                                         HazelcastDataProvider.createSubsToIdsKey(data.getClientId(), data.getTopicName()), data.getUuids());
+                                 multiMapService.saveToMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_IDS,
+                                         HazelcastDataProvider.createSubsToIdsKey(data.getClientId(), data.getTopicName()), data.getIds());
                              }
                          }
                 );
 
-        dataProvider.removeFromMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_IDS,
+        multiMapService.removeFromMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_IDS,
                 HazelcastDataProvider.createSubsToIdsKey(data.getClientId(), data.getTopicName()),
-                data.getUuids());
+                data.getIds());
     }
 
     private void run() {
 
-        Ringbuffer<DataToSend> rb = dataProvider.getRingBuffer(RB_JOBS);
+        Ringbuffer<DataToSend> rb = dataProvider.getRingBuffer(RB_JOBS + "_TMP", DataToSend.class);
 
         new Thread(() -> {
 
@@ -101,7 +102,7 @@ public class RingBufferRegister implements InitializingBean /*, NewClientRegistr
                     throw new RuntimeException(e);
                 }
 
-                log.debug("Sending data. [{}] - [{}]", data.getClientId(), data.getUuids().size());
+                log.debug("Sending data. [{}] - [{}]", data.getClientId(), data.getIds().size());
 
                 CompletableFuture.runAsync(() -> send(seq, data, index), executorsPool);
             }
@@ -135,7 +136,7 @@ public class RingBufferRegister implements InitializingBean /*, NewClientRegistr
         SendStatus sendStatus = lockingSender.sendAndRemove(data);
 
         if (sendStatus == SendStatus.IN_PROGRESS) {
-            log.debug("Setting index to [{}] for size [{}]", index, data.getUuids().size());
+            log.debug("Setting index to [{}] for size [{}]", index, data.getIds().size());
 
             seq.set(index);
         }
@@ -145,7 +146,7 @@ public class RingBufferRegister implements InitializingBean /*, NewClientRegistr
         }
 
         if (sendStatus == SendStatus.NO_ACTIVE_CHANNEL) {
-            log.debug("Adding to queue {} size {}", index, data.getUuids().size());
+            log.debug("Adding to queue {} size {}", index, data.getIds().size());
             queue.add(index);
         }
     }

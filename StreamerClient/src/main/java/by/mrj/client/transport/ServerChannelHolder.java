@@ -28,7 +28,6 @@ import java.util.concurrent.CompletableFuture;
 public class ServerChannelHolder {
 
     private final ServerChannel channel;
-    private final SimpleChannelInboundHandler<?> handler;
     private boolean isConnected;
 
     public ChannelFuture readAll() {
@@ -94,16 +93,17 @@ public class ServerChannelHolder {
         }
 
         return Single.create(emitter ->
-                CompletableFuture.runAsync(() -> {
+                new Thread(() -> {
+//                CompletableFuture.runAsync(() -> {
                     ChannelFuture closeChannelFuture = null;
                     EventLoopGroup group = new NioEventLoopGroup();
 
                     ServerChannelHolder sch;
                     try {
-                        log.info("Creating channel [{}]", connectionInfo.getConnectionType());
+                        log.debug("Creating channel [{}]", connectionInfo.getConnectionType());
 
                         ServerChannel channel = clientChannelFactory.createChannel(group, connectionInfo);
-                        sch = new ServerChannelHolder(channel, channel.getHandler());
+                        sch = new ServerChannelHolder(channel);
 
                         sch.isConnected = true;
 
@@ -111,7 +111,7 @@ public class ServerChannelHolder {
 
                         emitter.onSuccess(sch);
 
-                        log.info("Connection established [{}].", sch.channel.getChannel());
+                        log.debug("Connection established [{}].", sch.channel.getChannel());
 
                         closeChannelFuture = sch.channel.getChannel().closeFuture();
                         closeChannelFuture.sync();
@@ -126,9 +126,10 @@ public class ServerChannelHolder {
                             closeChannelFuture.cancel(true);
                         }
                     }
-                }).exceptionally(throwable -> {
-                    throw new RuntimeException(throwable);
-                }));
+//                }).exceptionally(throwable -> {
+//                    throw new RuntimeException(throwable);
+//                }));
+                }).start());
     }
 
     public Channel rawChannel() {

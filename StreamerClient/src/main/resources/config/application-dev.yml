@@ -17,7 +17,8 @@ logging:
   level:
     ROOT: INFO
     io.github.jhipster: INFO
-    by.mrj: INFO
+    by.mrj: DEBUG
+    io.netty: INFO
 
 server:
   port: 8081

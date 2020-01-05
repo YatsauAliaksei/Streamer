@@ -118,7 +118,7 @@ public class TokenProvider implements InitializingBean {
             log.info("Unsupported JWT token.");
             log.trace("Unsupported JWT token trace: {}", e);
         } catch (IllegalArgumentException e) {
-            log.info("JWT token compact of handler are invalid.");
+            log.info("JWT token compact of handler are invalid. [{}]", authToken);
             log.trace("JWT token compact of handler are invalid trace: {}", e);
         }
         return false;

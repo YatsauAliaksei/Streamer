@@ -9,9 +9,11 @@ import by.mrj.common.serialization.json.JsonJackson;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+@Slf4j
 public class ByteBufUtils {
 
     public static ByteBuf create(DataSerializer serializer, MessageHeader messageHeader, Message<?> msg) {
@@ -34,8 +36,13 @@ public class ByteBufUtils {
     public static ByteBuf createPost(List<BaseObject> postData) {
 
         ByteBuf msg = Unpooled.buffer();
+        log.debug("Unpooled buf created");
+
         msg.writeInt(Command.POST.ordinal());
+        log.debug("Post command added");
+
         msg.writeCharSequence(JsonJackson.toJson(postData), CharsetUtil.UTF_8);
+        log.debug("Post data written");
 
         return msg;
     }

@@ -5,11 +5,13 @@ import by.mrj.server.data.HazelcastDataProvider;
 import by.mrj.server.data.HzConstants;
 import by.mrj.server.data.domain.DataUpdate;
 import by.mrj.server.service.DecisionService;
+import by.mrj.server.service.MapService;
 import by.mrj.server.service.sender.strategy.EventBasedRegister;
 import by.mrj.server.service.sender.strategy.PreSendBuffer;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.MapEvent;
+import com.hazelcast.map.listener.EntryAddedListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,12 +19,13 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class SubscriptionToIdsListener implements EntryListener<String, String> {
+public class SubscriptionToIdsListener implements EntryAddedListener<String, String> {
 
     private final DataProvider dataProvider;
     private final DecisionService clusterMemberService;
     private final PreSendBuffer preSendBuffer;
     private final EventBasedRegister eventBasedRegister;
+    private final MapService mapService;
 
     @Override
     public void entryAdded(final EntryEvent<String, String> event) {
@@ -47,7 +50,7 @@ public class SubscriptionToIdsListener implements EntryListener<String, String> 
         eventBasedRegister.eventBased(clientId);
     }
 
-    @Override
+/*    @Override
     // todo: Basically means object was removed from Topic and therefore should be removed at clients sides as well
     // we can't use it for removing from client operation as it will cause cycle. We remove entries after send op at #entryAdded method.
     public void entryRemoved(EntryEvent<String, String> event) {
@@ -76,11 +79,11 @@ public class SubscriptionToIdsListener implements EntryListener<String, String> 
     @Override
     public void mapEvicted(MapEvent event) {
 
-    }
+    }*/
 
     public String register() {
         log.warn("Registering SubscriptionToIds listener.");
 
-        return dataProvider.registerListener(HzConstants.Maps.SUBSCRIPTION_TO_IDS, this, true);
+        return mapService.registerListener(HzConstants.Maps.SUBSCRIPTION_TO_IDS, this, true);
     }
 }

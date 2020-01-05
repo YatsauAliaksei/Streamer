@@ -4,11 +4,16 @@ import by.mrj.client.config.streamer.StreamerClientConfiguration;
 import by.mrj.common.domain.ConnectionType;
 import by.mrj.common.domain.client.ConnectionInfo;
 import by.mrj.it.client.AbstractStreamerReadTest;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 
 @Slf4j
@@ -24,7 +29,14 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public class StreamerReadTest extends AbstractStreamerReadTest {
 
     @Override
-    protected ConnectionInfo connectionInfo() {
-        return ConnectionInfo.from(ConnectionType.WS, null, getHost(), getPort(), "login-READ-WS", "pwd");
+    protected List<ConnectionInfo> connectionInfo() {
+        return IntStream.range(0, 100)
+                .boxed()
+                .map(i -> createConnectionInfo("login-READ-WS-" + i))
+                .collect(Collectors.toList());
+    }
+
+    private ConnectionInfo createConnectionInfo(String login) {
+        return ConnectionInfo.from(ConnectionType.WS, null, getHost(), getPort(), login, "pwd");
     }
 }

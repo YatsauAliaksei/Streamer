@@ -21,8 +21,6 @@ public interface ServerChannel {
 
     default ChannelFuture authorize(String login, String pwd) {return null;}
 
-    SimpleChannelInboundHandler getHandler();
-
     @SneakyThrows
     void closeFutureSync();
 }

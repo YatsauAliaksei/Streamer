@@ -1,16 +1,13 @@
 package by.mrj.server.data;
 
 import by.mrj.common.domain.data.BaseObject;
-import by.mrj.server.data.domain.DataToSend;
+import by.mrj.server.data.domain.Subscription;
 import com.google.common.collect.Sets;
-import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IAtomicLong;
-import com.hazelcast.core.ILock;
+import com.hazelcast.core.IList;
 import com.hazelcast.core.IMap;
-import com.hazelcast.core.ISet;
 import com.hazelcast.core.MultiMap;
-import com.hazelcast.map.listener.MapListener;
 import com.hazelcast.ringbuffer.Ringbuffer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +39,7 @@ public class HazelcastDataProvider implements DataProvider {
      */
     @Override
     public List<BaseObject> getAllForUser(String clientId, int maxSize) {
+        log.debug("Loading {} objects for {}", maxSize, clientId);
 
         MultiMap<String, String> userToSubs = hazelcastInstance.getMultiMap(HzConstants.Maps.USER_TO_SUBSCRIPTION);
         Collection<String> subs = Optional.ofNullable(userToSubs.get(clientId)).orElse(Collections.emptyList());
@@ -50,7 +48,37 @@ public class HazelcastDataProvider implements DataProvider {
             return Collections.emptyList();
         }
 
-        MultiMap<String, String> subToIds = hazelcastInstance.getMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_IDS);
+//        MultiMap<String, String> subToIds = hazelcastInstance.getMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_IDS);
+        List<BaseObject> data = new ArrayList<>(maxSize == Integer.MAX_VALUE ? 10 : maxSize);
+
+        for (String topic : subs) {
+            Subscription subscription = new Subscription(clientId, topic);
+//            IMap<Long, Long> map = hazelcastInstance.getMap(subscription.mapName());
+            IList<Long> list = hazelcastInstance.getList(subscription.mapName());
+
+            if (list.size() == 0) {
+                return Collections.emptyList();
+            }
+
+            Set<Long> ids = new HashSet<>(list.size() > maxSize ? list.subList(0, maxSize) : list);
+
+//            Set<Long> ids = map.keySet(new PagingPredicate(maxSize));
+            maxSize -= ids.size();
+
+            log.debug("Fetched [{}] ids. [{}] left", ids.size(), maxSize);
+
+            Collection<BaseObject> baseObjects = get(topic, ids);
+            data.addAll(baseObjects);
+
+            if (maxSize == 0) {
+                log.debug("Limit {} reached.", data.size());
+                break;
+            }
+        }
+
+        return data;
+
+/*        MultiMap<String, String> subToIds = hazelcastInstance.getMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_IDS);
 //        log.info("Subs to ids: [{}]", subToIds.entrySet());
         log.info("Subs to ids size: [{}]", subToIds.size());
 
@@ -75,7 +103,7 @@ public class HazelcastDataProvider implements DataProvider {
 
                     return values.stream();
                 })
-                .collect(Collectors.toList());
+                .collect(Collectors.toList());*/
     }
 
     @Override
@@ -94,7 +122,7 @@ public class HazelcastDataProvider implements DataProvider {
     }
 
     @Override
-    public Map<String, Collection<String>> getAllUuids(String clientId) {
+    public Map<String, Collection<Long>> getAllUuids(String clientId) {
         MultiMap<String, String> userToSubs = hazelcastInstance.getMultiMap(HzConstants.Maps.USER_TO_SUBSCRIPTION);
         Collection<String> subs = Optional.ofNullable(userToSubs.get(clientId)).orElse(Collections.emptyList());
 
@@ -102,7 +130,7 @@ public class HazelcastDataProvider implements DataProvider {
             return new HashMap<>();
         }
 
-        MultiMap<String, String> subToIds = hazelcastInstance.getMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_IDS);
+        MultiMap<String, Long> subToIds = hazelcastInstance.getMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_IDS);
         log.debug("Subs to ids size: [{}]", subToIds.size());
 
         if (subToIds.size() == 0) {
@@ -117,12 +145,12 @@ public class HazelcastDataProvider implements DataProvider {
     }
 
     @Override
-    public Collection<BaseObject> get(String topicName, Set<String> uuids) {
-        log.debug("Fetching for [{}] uuids [{}]", topicName, uuids.size());
+    public Collection<BaseObject> get(String topicName, Set<Long> ids) {
+        log.debug("Fetching for [{}] ids [{}]", topicName, ids.size());
 
-        IMap<String, BaseObject> map = hazelcastInstance.getMap(topicName);
+        IMap<Long, BaseObject> map = hazelcastInstance.getMap(topicName);
 
-        return Optional.ofNullable(map.getAll(uuids))
+        return Optional.ofNullable(map.getAll(ids))
                 .orElse(new HashMap<>())
                 .values();
     }
@@ -157,16 +185,12 @@ public class HazelcastDataProvider implements DataProvider {
     }
 
     @Override
-    public Collection<String> getAllIdFor(String clientId, String topicName) {
-        MultiMap<String, String> subToIds = hazelcastInstance.getMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_IDS);
+    public Collection<Long> getAllIdFor(String clientId, String topicName) {
+        MultiMap<String, Long> subToIds = hazelcastInstance.getMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_IDS);
 
         return subToIds.get(createSubsToIdsKey(clientId, topicName));
     }
 
-    /**
-     * @param topicName
-     * @param baseObjects
-     */
     @Override
     public void putAll(String topicName, List<BaseObject> baseObjects) {
         if (baseObjects.isEmpty()) {
@@ -179,9 +203,8 @@ public class HazelcastDataProvider implements DataProvider {
 
         IMap<Object, Object> cache = hazelcastInstance.getMap(topicName);
 
-
         cache.putAll(baseObjects.stream()
-                .collect(Collectors.toMap(BaseObject::getUuid, Function.identity())));
+                .collect(Collectors.toMap(BaseObject::getId, Function.identity())));
 
         log.debug("{} objects added to topic [{}]", baseObjects.size(), topicName);
     }
@@ -194,84 +217,27 @@ public class HazelcastDataProvider implements DataProvider {
         map.put(clientId, subscription);
     }
 
-    /**
-     * Creates MultiMap if doesn't exist
-     */
-    @Override
-    public void saveToMultiMap(String mapName, String key, Set<String> values) {
-        log.trace("Putting values to [{}] K:[{}] V:[{}]", mapName, key, values);
-
-        MultiMap<String, String> map = hazelcastInstance.getMultiMap(mapName);
-
-        values.forEach(v -> map.put(key, v));
-    }
-
-    @Override
-    public <K, V> void removeFromMultiMap(String mapName, Map<K, List<V>> entries) {
-        if (entries.isEmpty()) {
-            log.debug("Nothing to remove. Empty entries");
-        }
-
-        for (Map.Entry<K, List<V>> entry : entries.entrySet()) {
-            removeFromMultiMap(mapName, entry.getKey(), entry.getValue());
-        }
-    }
-
-    @Override
-    public <K, V> void removeFromMultiMap(String mapName, K key, Collection<V> values) {
-        log.debug("Removing from [{}] s:[{}] for key [{}]", mapName, values.size(), key);
-
-        MultiMap<K, V> multiMap = hazelcastInstance.getMultiMap(mapName);
-
-        for (V v : values) {
-//            Collection<V> vs = multiMap.get(key);
-
-            multiMap.remove(key, v);
-        }
-    }
-
-    @Override
-    public String registerListener(String mapName, MapListener listener, boolean includeValue) {
-        return hazelcastInstance.getMap(mapName).addEntryListener(listener, includeValue);
-    }
-
-    @Override
-    public String registerListener(String mapName, EntryListener listener, boolean includeValue) {
-        return hazelcastInstance.getMultiMap(mapName).addEntryListener(listener, includeValue);
-    }
-
     @Override
     public Set<String> getAllClientsForSub(String topicName) {
+        log.debug("Taking all clients subscribed to [{}]", topicName);
+
         MultiMap<String, String> map = hazelcastInstance.getMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_USER);
 
-        return Sets.newHashSet(map.get(topicName));
+        Set<String> clients = Sets.newHashSet(map.get(topicName));
+
+        log.debug("Received [{}] clients", clients.size());
+
+        return clients;
     }
 
     @Override
-    public Set<String> getKeysForTopic(String topicName) {
-        return hazelcastInstance.<String, BaseObject>getMap(topicName).keySet();
+    public Set<Long> getKeysForTopic(String topicName) {
+        return hazelcastInstance.<Long, BaseObject>getMap(topicName).keySet();
     }
 
     @Override
-//    @SneakyThrows
-    public boolean tryLock(String lockName) {
-//        return hazelcastInstance.getLock(lockName).tryLock(0L, TimeUnit.SECONDS, 2L, TimeUnit.SECONDS);
-        return hazelcastInstance.getLock(lockName).tryLock();
-    }
-
-    @Override
-    public Ringbuffer<DataToSend> getRingBuffer(String ringBufName) {
+    public <T> Ringbuffer<T> getRingBuffer(String ringBufName, Class<T> clazz) {
         return hazelcastInstance.getRingbuffer(ringBufName);
-    }
-
-    @Override
-    public ILock getLock(String lockName) {
-        return hazelcastInstance.getLock(lockName);
-    }
-
-    @Override
-    public void unlock(String lockName) {
-        hazelcastInstance.getLock(lockName).forceUnlock();
     }
 
     public static String createSubsToIdsKey(String clientId, String topicName) {

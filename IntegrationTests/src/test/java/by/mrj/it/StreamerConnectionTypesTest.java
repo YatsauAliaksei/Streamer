@@ -171,10 +171,9 @@ public class StreamerConnectionTypesTest {
         long k = 0;
         while (true) {
             channel.send(Lists.newArrayList(
-                    DataUtils.createNewData("First", "UU-ID" + k, BasicData.builder()
-                            .id(0)
-                            .name("base")
-                            .uuid("UU-ID" + k++)
+                    DataUtils.createNewData("First", k, BasicData.builder()
+                            .key("base")
+                            .value("UU-ID" + k++)
                             .build())));
 
             Thread.sleep(10_000);

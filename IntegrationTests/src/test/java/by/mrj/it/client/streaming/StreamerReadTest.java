@@ -10,6 +10,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 
 @Slf4j
 @SpringBootTest
@@ -24,7 +28,14 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public class StreamerReadTest extends AbstractStreamerReadTest {
 
     @Override
-    protected ConnectionInfo connectionInfo() {
-        return ConnectionInfo.from(ConnectionType.HTTP_STREAMING, null, getHost(), getPort(), "login-READ-ST", "pwd");
+    protected List<ConnectionInfo> connectionInfo() {
+        return IntStream.range(0, 2)
+                .boxed()
+                .map(i -> createConnectionInfo("login-READ-ST-" + i))
+                .collect(Collectors.toList());
+    }
+
+    private ConnectionInfo createConnectionInfo(String login) {
+        return ConnectionInfo.from(ConnectionType.HTTP_STREAMING, null, getHost(), getPort(), login, "pwd");
     }
 }

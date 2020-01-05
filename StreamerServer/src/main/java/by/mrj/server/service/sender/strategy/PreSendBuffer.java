@@ -103,17 +103,17 @@ public class PreSendBuffer {
 
         CompletableFuture.runAsync(() -> {
 
-            Map<String, Set<String>> topicToUuids = datas.stream()
+            Map<String, Set<Long>> topicToUuids = datas.stream()
                     .collect(Collectors.groupingBy(DataUpdate::getTopic,
                             Collector.of(HashSet::new,
-                                    (uuids, bo) -> uuids.add(bo.getUuid()),
+                                    (uuids, bo) -> uuids.add(bo.getId()),
                                     (left, right) -> {
                                         left.addAll(right);
                                         return left;
                                     },
                                     Collector.Characteristics.IDENTITY_FINISH)));
 
-            for (Map.Entry<String, Set<String>> entry : topicToUuids.entrySet()) {
+            for (Map.Entry<String, Set<Long>> entry : topicToUuids.entrySet()) {
                 DataToSend dataToSend = new DataToSend(curr.getClient(), entry.getKey(), entry.getValue());
 
                 ringBufferRegister.register(dataToSend);

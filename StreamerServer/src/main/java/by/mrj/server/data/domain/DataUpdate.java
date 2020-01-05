@@ -12,7 +12,7 @@ import java.time.Instant;
 public class DataUpdate {
     private final long timestamp = Instant.now().toEpochMilli();
 
-    private final String uuid;
+    private final Long id;
     private final String client;
     private final String topic;
 }

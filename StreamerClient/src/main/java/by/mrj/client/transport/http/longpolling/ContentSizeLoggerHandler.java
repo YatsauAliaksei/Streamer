@@ -1,35 +1,44 @@
-package by.mrj.client.transport.http.streaming;
+package by.mrj.client.transport.http.longpolling;
 
-import by.mrj.client.service.MessageConsumer;
 import by.mrj.common.domain.data.BaseObject;
 import by.mrj.common.serialization.json.JsonJackson;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.util.CharsetUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.nio.charset.StandardCharsets;
-
 @Slf4j
 @RequiredArgsConstructor
-public class StreamingClientTextHandler extends SimpleChannelInboundHandler<FullHttpResponse> {
-
-    private final MessageConsumer messageConsumer;
+public class ContentSizeLoggerHandler extends SimpleChannelInboundHandler<FullHttpResponse> {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        log.debug("Streaming Client disconnected");
+        log.debug("LongPolling Client disconnected");
     }
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, FullHttpResponse response) throws Exception {
+        log.info("Content size handler: [{}]", response);
 
-        log.info("Streaming Http Client received FULL message: [{}]", response);
+        ByteBuf bb = response.content();
 
-        String content = response.content().toString(StandardCharsets.UTF_8);
+        log.info("Readable bytes {}", bb.readableBytes());
 
-        messageConsumer.consume(JsonJackson.fromJson(content, BaseObject[].class));
+        String content = bb.toString(CharsetUtil.UTF_8);
+
+        log.info("Content: [{}]", content);
+
+        BaseObject[] baseObjects = JsonJackson.fromJson(content, BaseObject[].class);
+
+        if (baseObjects.length != 1 || baseObjects[0].getId() != null) {
+            ctx.pipeline().remove(this);
+        }
+
+        response.retain();
+        ctx.fireChannelRead(response);
     }
 
     @Override
@@ -42,6 +51,6 @@ public class StreamingClientTextHandler extends SimpleChannelInboundHandler<Full
 
     @Override
     public String toString() {
-        return "Streaming Text handler";
+        return "Long Polling text handler";
     }
 }

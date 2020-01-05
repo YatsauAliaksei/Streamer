@@ -22,7 +22,7 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class SocketServer implements PortListener {
 
-    private final ChannelHandler webSocketServerInitializer;
+    private final ChannelHandler serverChannelInitializer;
     @Setter
     private Integer port;
 
@@ -39,7 +39,7 @@ public class SocketServer implements PortListener {
                         // todo: make it flexible in case Linux/Epoll possible
                         .channel(NioServerSocketChannel.class)
                         .handler(new LoggingHandler(LogLevel.DEBUG))
-                        .childHandler(webSocketServerInitializer);
+                        .childHandler(serverChannelInitializer);
 
                 Channel ch = b.bind(port).sync().channel();
 

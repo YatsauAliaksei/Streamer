@@ -34,8 +34,6 @@ public class LongPollingServerChannel implements ServerChannel {
     @Getter
     private final Channel channel;
     private final DataSerializer dataSerializer;
-    @Getter
-    private final SimpleChannelInboundHandler<?> handler;
     @Setter
     private volatile String authHeader;
 
@@ -52,18 +50,24 @@ public class LongPollingServerChannel implements ServerChannel {
 
     @Override
     public ChannelFuture send(List<BaseObject> postData) {
-        log.info("Posting data [{}] size [{}]", postData.get(0).getUuid(), postData.size());
+        if (log.isDebugEnabled()) {
+            log.debug("Posting data [{}] size [{}]", postData.get(0).getHash(), postData.size());
+        }
 
         ByteBuf message = ByteBufUtils.createPost(postData);
 
+        log.debug("Creating HttpRequest");
+
         HttpRequest request = createHttpRequest(message);
+
+        log.debug("Sending [{}] objects", postData.size());
 
         return channel.writeAndFlush(request);
     }
 
     @Override
     public ChannelFuture authorize(String login, String pwd) {
-        log.info("Authorizing [{}]...", login);
+        log.debug("Authorizing [{}]...", login);
 
         ByteBuf message = ByteBufUtils.createAuth();
 
@@ -89,7 +93,7 @@ public class LongPollingServerChannel implements ServerChannel {
         }
 
         // Set some example cookies.
-        request.headers().set(HttpHeaderNames.COOKIE, "MyCookie=12345");
+//        request.headers().set(HttpHeaderNames.COOKIE, "MyCookie=12345");
         return request;
     }
 

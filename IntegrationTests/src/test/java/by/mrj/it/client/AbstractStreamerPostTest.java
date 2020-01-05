@@ -7,7 +7,6 @@ import by.mrj.common.domain.client.ConnectionInfo;
 import by.mrj.common.domain.data.BaseObject;
 import by.mrj.common.utils.DataUtils;
 import by.mrj.it.BasicData;
-import com.google.common.collect.Lists;
 import io.reactivex.Single;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -28,11 +28,11 @@ public abstract class AbstractStreamerPostTest {
     @Autowired
     private ConnectionManager connectionManager;
 
+    @Getter
     @Value("${streamer.port}")
-    @Getter
     private Integer port; // todo: ports
-    @Value("${streamer.host}")
     @Getter
+    @Value("${streamer.host}")
     private String host; // todo: hosts
 
     @Test
@@ -45,13 +45,22 @@ public abstract class AbstractStreamerPostTest {
         while (batches-- > 0) {
             List<BaseObject> data = createData(batchSize());
 
-            channel.post(Lists.newArrayList(data));
-            Thread.sleep(10);
+            log.debug("Created {} objects", data.size());
+
+            channel.post(data);
+
+            log.info("Posted {} objects.", data.size());
+
+            Thread.sleep(timeout());
         }
 
-        log.info("Data sent");
+        log.info("Data sent. Total: {}", batches() * batchSize());
 
-//        channel.closeFutureSync();
+        channel.rawChannel().close();
+    }
+
+    protected int timeout() {
+        return 2000;
     }
 
     protected abstract int batches();
@@ -61,13 +70,15 @@ public abstract class AbstractStreamerPostTest {
     protected abstract ConnectionType connectionType();
 
     public List<BaseObject> createData(int batchSize) {
+        long now = Instant.now().toEpochMilli();
         return IntStream.range(0, batchSize)
                 .boxed()
-                .map(i -> DataUtils.createNewData("First", "UU-ID" + i,
-                        BasicData.builder()
-                                .id(0)
-                                .name("base")
-                                .uuid("UU-ID-" + i))
+                .map(i -> new BaseObject(null, "First", 0, null, String.valueOf(now))
+//                        BasicData.builder()
+//                                .key("k1")
+//                                .value("D-" + id++)
+//                                .created(Instant.now().toEpochMilli())
+//                                .build())
                 ).collect(Collectors.toList());
     }
 

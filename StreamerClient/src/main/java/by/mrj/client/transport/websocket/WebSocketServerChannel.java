@@ -9,7 +9,6 @@ import by.mrj.common.utils.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import lombok.Getter;
@@ -28,8 +27,6 @@ public class WebSocketServerChannel implements ServerChannel {
     @Getter
     private final Channel channel;
     private final DataSerializer dataSerializer;
-    @Getter
-    private final SimpleChannelInboundHandler<?> handler;
 
     @Override
     public ChannelFuture send(Message<?> msg, MessageHeader messageHeader) {
@@ -54,7 +51,7 @@ public class WebSocketServerChannel implements ServerChannel {
 
     @Override
     public ChannelFuture send(List<BaseObject> postData) {
-        log.info("Posting data [{}]", postData);
+        log.debug("Posting data [{}]", postData);
 
         ByteBuf msgBuf = ByteBufUtils.createPost(postData);
 

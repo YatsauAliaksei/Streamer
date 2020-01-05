@@ -32,8 +32,6 @@ public class StreamingServerChannel implements ServerChannel {
     @Getter
     private final Channel channel;
     private final DataSerializer dataSerializer;
-    @Getter
-    private final SimpleChannelInboundHandler<?> handler;
     @Setter
     private volatile String authHeader;
 
@@ -49,7 +47,7 @@ public class StreamingServerChannel implements ServerChannel {
 
     @Override
     public ChannelFuture send(List<BaseObject> postData) {
-        log.info("Posting data [{}]", postData);
+        log.debug("Posting data [{}]", postData);
 
         ByteBuf message = ByteBufUtils.createPost(postData);
         HttpRequest request = getHttpRequest(message);

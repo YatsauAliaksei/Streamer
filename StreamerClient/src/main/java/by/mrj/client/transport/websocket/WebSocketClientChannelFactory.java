@@ -65,7 +65,6 @@ public class WebSocketClientChannelFactory implements ClientChannelFactory {
                         , connectionInfo.getLogin(), connectionInfo.getPassword());
 
         WebSocketCompleteClientHandler webSocketCompleteClientHandler = new WebSocketCompleteClientHandler(wsHandshaker);
-        var handler = new WebSocketClientTextHandler(messageConsumer);
 
         Bootstrap b = new Bootstrap();
         b.group(group)
@@ -86,7 +85,7 @@ public class WebSocketClientChannelFactory implements ClientChannelFactory {
                         p.addLast(new WebSocketClientCloseHandler());
                         p.addLast(new WebSocketClientBinaryHandler());
                         p.addLast(new WebSocketClientPongHandler());
-                        p.addLast(handler);
+                        p.addLast(new WebSocketClientTextHandler(messageConsumer, connectionInfo));
                         p.addLast(new SimpleChannelInboundHandler<Object>() {
                             @Override
                             protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -111,7 +110,7 @@ public class WebSocketClientChannelFactory implements ClientChannelFactory {
 
         log.info("WS handshake finished. Connected to {}:{}", host, port);
         log.info("WS connection established");
-        return new WebSocketServerChannel(channel, dataSerializer, handler);
+        return new WebSocketServerChannel(channel, dataSerializer);
     }
 
     @Override

@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentMap;
 public class HzListenerService implements InitializingBean {
 
     private final HazelcastInstance hazelcastInstance;
-    private final SubscriptionToIdsListener subscriptionToIdsListener;
+//    private final SubscriptionToIdsListener subscriptionToIdsListener;
     private final UserSubscriptionsListener userSubscriptionsListener;
 
     private ConcurrentMap<String, Object> listeners = new ConcurrentHashMap<>();
@@ -31,10 +31,11 @@ public class HzListenerService implements InitializingBean {
                 if (hazelcastInstance.getLifecycleService().isRunning()) {
                     log.info("HZ is running. . Registering listeners...");
 
-                    String id = subscriptionToIdsListener.register();
-                    listeners.put(id, subscriptionToIdsListener);
+                    String
+//                            id = subscriptionToIdsListener.register();
+//                    listeners.put(id, subscriptionToIdsListener);
 
-                    userSubscriptionsListener.register();
+                    id = userSubscriptionsListener.register();
                     listeners.put(id, userSubscriptionsListener);
 
                     log.info("Listeners registered successfully.");

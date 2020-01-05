@@ -12,7 +12,7 @@
     </appender>
 
     <logger name="by.mrj" level="INFO"/>
-    <logger name="io.netty" level="INFO"/>
+    <logger name="io.netty" level="DEBUG"/>
 
     <!--<logger name="com.ning.http.client" level="WARN"/>-->
     <!--<logger name="javax.activation" level="WARN"/>-->

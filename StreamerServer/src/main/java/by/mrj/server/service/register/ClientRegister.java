@@ -11,5 +11,7 @@ public interface ClientRegister {
      */
     void register(DataClient dataClient);
 
+    void unregister(String clientId);
+
     DataClient findBy(String id);
 }

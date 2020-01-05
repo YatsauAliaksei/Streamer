@@ -30,7 +30,7 @@ public class KafkaDataProvider {
     @Override
     public void putAll(Topic topic, List<BaseObject> baseObjects) {
         for (BaseObject baseObject : baseObjects) {
-            producer.send(new ProducerRecord<>(topic.getName(), baseObject.getUuid(), baseObject.getPayload()));
+            producer.send(new ProducerRecord<>(topic.getName(), baseObject.getId(), baseObject.getPayload()));
         }
     }*/
 }

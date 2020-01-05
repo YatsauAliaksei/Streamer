@@ -26,12 +26,17 @@ public class StreamerPostTest extends AbstractStreamerPostTest {
 
     @Override
     protected int batches() {
-        return 1;
+        return 2;
     }
 
     @Override
     protected int batchSize() {
-        return 1000;
+        return 2000;
+    }
+
+    @Override
+    protected int timeout() {
+        return 2000;
     }
 
     @Override

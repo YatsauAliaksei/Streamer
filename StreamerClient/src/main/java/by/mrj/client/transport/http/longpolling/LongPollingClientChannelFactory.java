@@ -50,7 +50,7 @@ public class LongPollingClientChannelFactory implements ClientChannelFactory {
         final String host = connectionInfo.getHost();
         final Integer port = connectionInfo.getPort();
         final SslContext sslCtx = connectionInfo.getSslCtx();
-        var handler = new LongPoolingHttpClientTextHandler(messageConsumer);
+
         var authHandler = new AuthenticationHttpHandler();
 
         Bootstrap b = new Bootstrap();
@@ -65,11 +65,10 @@ public class LongPollingClientChannelFactory implements ClientChannelFactory {
                             p.addLast(sslCtx.newHandler(ch.alloc(), host, port));
                         }
                         p.addLast(new HttpClientCodec());
-//                        p.addLast(new HttpObjectAggregator(1 << 16));
                         p.addLast(new HttpObjectAggregator(Integer.MAX_VALUE));
-//                                    WebSocketClientCompressionHandler.INSTANCE,
                         p.addLast(authHandler);
-                        p.addLast(handler);
+                        p.addLast(new ContentSizeLoggerHandler());
+                        p.addLast("mainHandler", new LongPoolingHttpClientTextHandler(messageConsumer, connectionInfo));
                         p.addLast(new SimpleChannelInboundHandler<Object>() {
                             @Override
                             protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -82,15 +81,15 @@ public class LongPollingClientChannelFactory implements ClientChannelFactory {
                 })
                 .option(ChannelOption.SO_KEEPALIVE, true);
 
-        log.info("Connecting...");
+        log.debug("Connecting...");
 
         ChannelFuture channelFuture = b.connect(host, port);
         channelFuture.addListener(handshakeListener);
 
         Channel channel = channelFuture.sync().channel();
-        log.info("LP channel connection established");
+        log.debug("LP channel connection established for [{}]", connectionInfo);
 
-        LongPollingServerChannel longPollingServerChannel = new LongPollingServerChannel(channel, dataSerializer, handler);
+        LongPollingServerChannel longPollingServerChannel = new LongPollingServerChannel(channel, dataSerializer);
         authorize(connectionInfo, authHandler, longPollingServerChannel);
 
         return longPollingServerChannel;

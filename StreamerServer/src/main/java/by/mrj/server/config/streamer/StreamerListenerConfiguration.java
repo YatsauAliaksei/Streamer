@@ -100,7 +100,7 @@ public class StreamerListenerConfiguration {
     @Bean
     public NewClientRegistrationListener clientRegistrationListener() {
         return dataClient ->
-                log.info("Client registered [{}]", dataClient.getId());
+                log.debug("Client registered [{}]", dataClient.getId());
     }
 
     //    @Bean

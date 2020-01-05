@@ -43,14 +43,15 @@ public class FullHttpRequestHandler extends SimpleChannelInboundHandler<FullHttp
 
 
         if (command == Command.AUTHORIZE) {
-            log.info("Received AUTH command. Sending back...");
-            FullHttpResponse response = messageChannelConverter.convert("");
+            log.debug("Received AUTH command. Sending back...");
+
             String jwt = req.headers().get(HttpHeaderNames.AUTHORIZATION);
 
+            FullHttpResponse response = messageChannelConverter.convert("");
             response.headers().set(HttpHeaderNames.AUTHORIZATION, jwt);
             ctx.channel().writeAndFlush(response);
 
-            log.info("Sent back [{}]", response);
+            log.debug("Sent back [{}]", response);
 
             return;
         }

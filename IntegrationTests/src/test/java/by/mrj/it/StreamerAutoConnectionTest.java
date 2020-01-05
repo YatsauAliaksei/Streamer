@@ -81,8 +81,8 @@ public class StreamerAutoConnectionTest {
         channel.send(Lists.newArrayList(
                 DataUtils.createNewData("topicName", "UU-ID", BasicData.builder()
                         .id(0)
-                        .name("base")
-                        .uuid("UU-ID")
+                        .key("base")
+                        .id("UU-ID")
                         .build())));*/
 
         channel.closeFutureSync();

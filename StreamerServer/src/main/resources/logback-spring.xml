@@ -29,7 +29,7 @@
     <logger name="by.mrj" level="info"/>
 
     <logger name="com.ning.http.client" level="WARN"/>
-    <logger name="io.netty" level="WARN"/>
+    <logger name="io.netty" level="DEBUG"/>
     <logger name="javax.activation" level="WARN"/>
     <logger name="javax.mail" level="WARN"/>
     <logger name="javax.management.remote" level="WARN"/>

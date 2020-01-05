@@ -19,6 +19,8 @@ public class HttpSecurityServerHandler extends SimpleChannelInboundHandler<FullH
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
 
+        log.debug("Request entry Security point");
+
         String jwt = jwtFilter.authorize(req);
 
         if (SecurityContextHolder.getContext() == null
@@ -30,6 +32,8 @@ public class HttpSecurityServerHandler extends SimpleChannelInboundHandler<FullH
         }
 
         req.headers().set(HttpHeaderNames.AUTHORIZATION, "Bearer " + jwt);
+
+        log.debug("Authorization successful");
 
         req.retain();
         ctx.fireChannelRead(req);

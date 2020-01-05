@@ -25,7 +25,7 @@ public class ConnectionManager {
      */
     public Single<ServerChannelHolder> autoConnect() {
         ConnectionInfo ci = connectionInfoFactory.auto();
-        log.info("Trying to connect using [{}]", ci);
+        log.debug("Trying to connect using [{}]", ci);
         return connect(ci);
     }
 
@@ -38,13 +38,10 @@ public class ConnectionManager {
 
         ClientChannelFactory clientChannelFactory = typeToFactory.get(connectionInfo.getConnectionType());
         if (!validate(clientChannelFactory)) {
-            // fixme
+            // todo:
         }
 
-        Single<ServerChannelHolder> serverChannelHolder = createServerChannelHolder(connectionInfo, clientChannelFactory);
-//        serverChannelHolder.subscribe(sch -> sch.authorize(connectionInfo.getLogin(), connectionInfo.getPassword()));
-
-        return serverChannelHolder;
+        return createServerChannelHolder(connectionInfo, clientChannelFactory);
     }
 
     private Single<ServerChannelHolder> createServerChannelHolder(ConnectionInfo connectionInfo,
@@ -57,7 +54,7 @@ public class ConnectionManager {
 
                         ServerChannelHolder prevServerChannelHolder;
 
-                        log.info("Saving connection channel [{}]", sch);
+                        log.debug("Saving connection channel [{}]", sch);
 
                         if ((prevServerChannelHolder = connectionHolder.put(connectionInfo, sch)) != null) {
                             prevServerChannelHolder.closeFutureSync();
@@ -65,13 +62,15 @@ public class ConnectionManager {
                         sch.rawChannel().closeFuture()
                                 .addListener(closeFuture -> connectionHolder.remove(connectionInfo));
 
-//                        sch.authorize(connectionInfo.getLogin(), connectionInfo.getPassword()).syncUninterruptibly();
-
                         emitter.onSuccess(sch);
                     },
                     e -> {
                         throw new RuntimeException(e);
                     });
+
+            channelSingle.doOnError(t -> {
+                log.error("Error creating channel [" + connectionInfo + "]", t);
+            });
         });
     }
 

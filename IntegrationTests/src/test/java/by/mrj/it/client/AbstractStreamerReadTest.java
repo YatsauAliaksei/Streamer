@@ -93,7 +93,7 @@ public abstract class AbstractStreamerReadTest {
                 log.error("Error while getting stats.", e);
             }
 
-        }, 10L, 10L, TimeUnit.SECONDS);
+        }, 30L, 30L, TimeUnit.SECONDS);
 
         log.info("Blocking...");
 

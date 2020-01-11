@@ -1,4 +1,4 @@
-package by.mrj.server.service;
+package by.mrj.server.service.data;
 
 import com.hazelcast.core.ILock;
 import lombok.SneakyThrows;

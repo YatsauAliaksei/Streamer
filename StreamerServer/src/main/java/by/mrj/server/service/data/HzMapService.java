@@ -1,12 +1,10 @@
-package by.mrj.server.service;
+package by.mrj.server.service.data;
 
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.map.listener.MapListener;
-import com.hazelcast.query.Predicate;
 import com.hazelcast.query.Predicates;
 import com.hazelcast.query.QueryConstants;
-import com.hazelcast.query.impl.predicates.EqualPredicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

@@ -20,7 +20,7 @@ public class BaseObject implements Serializable, Hashable {
     @Setter
     private Long id;
     private String topic;
-    private int version;
+//    private int version;
     private String hash; // for privacy guarantee should be signed
 
     private String payload;
@@ -35,7 +35,7 @@ public class BaseObject implements Serializable, Hashable {
     public static class BaseObjectBuilder {
         private Long id;
         private String topic;
-        private int version;
+//        private int version;
         private String payload;
 
         BaseObjectBuilder() {}
@@ -50,10 +50,10 @@ public class BaseObject implements Serializable, Hashable {
             return this;
         }
 
-        public BaseObjectBuilder version(int version) {
-            this.version = version;
-            return this;
-        }
+//        public BaseObjectBuilder version(int version) {
+//            this.version = version;
+//            return this;
+//        }
 
         public BaseObjectBuilder payload(String payload) {
             this.payload = payload;
@@ -61,10 +61,17 @@ public class BaseObject implements Serializable, Hashable {
         }
 
         public BaseObject build() {
+            return new BaseObject(id, topic, CryptoUtils.sha256(payload), payload);
 //            return new BaseObject(id, topic, version, CryptoUtils.sha256(payload), payload);
-            return new BaseObject(id, topic, 0, null, payload);
+//            return new BaseObject(id, topic, 0, null, payload);
         }
 
-        public String toString() {return "BaseObject.BaseObjectBuilder(id=" + this.id + ", topic=" + this.topic + ", version=" + this.version  + ", payload=" + this.payload + ")";}
+        public String toString() {
+            return "BaseObject.BaseObjectBuilder(id=" + this.id
+                    + ", topic=" + this.topic
+//                    + ", version=" + this.version
+                    + ", payload=" + this.payload
+                    + ")";
+        }
     }
 }

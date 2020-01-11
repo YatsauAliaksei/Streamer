@@ -1,13 +1,11 @@
 package by.mrj.server.hz.listener;
 
 import by.mrj.server.data.DataProvider;
-import by.mrj.server.data.HazelcastDataProvider;
 import by.mrj.server.data.HzConstants;
-import by.mrj.server.service.MultiMapService;
+import by.mrj.server.service.data.MultiMapService;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.MapEvent;
-import com.hazelcast.core.MultiMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

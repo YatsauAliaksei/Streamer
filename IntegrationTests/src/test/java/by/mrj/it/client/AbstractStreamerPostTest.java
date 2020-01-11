@@ -5,8 +5,6 @@ import by.mrj.client.transport.ServerChannelHolder;
 import by.mrj.common.domain.ConnectionType;
 import by.mrj.common.domain.client.ConnectionInfo;
 import by.mrj.common.domain.data.BaseObject;
-import by.mrj.common.utils.DataUtils;
-import by.mrj.it.BasicData;
 import io.reactivex.Single;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -71,14 +69,13 @@ public abstract class AbstractStreamerPostTest {
 
     public List<BaseObject> createData(int batchSize) {
         long now = Instant.now().toEpochMilli();
+
         return IntStream.range(0, batchSize)
                 .boxed()
-                .map(i -> new BaseObject(null, "First", 0, null, String.valueOf(now))
-//                        BasicData.builder()
-//                                .key("k1")
-//                                .value("D-" + id++)
-//                                .created(Instant.now().toEpochMilli())
-//                                .build())
+                .map(i -> BaseObject.builder()
+                        .topic("FIRST")
+                        .payload(String.valueOf(now))
+                        .build()
                 ).collect(Collectors.toList());
     }
 

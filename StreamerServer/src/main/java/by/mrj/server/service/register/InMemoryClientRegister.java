@@ -1,15 +1,16 @@
 package by.mrj.server.service.register;
 
+import by.mrj.common.domain.ConnectionType;
 import by.mrj.common.domain.client.DataClient;
 import by.mrj.common.domain.client.channel.ClientChannel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
-import static by.mrj.common.domain.client.DataClient.DUMMY;
 
 
 @Slf4j
@@ -17,35 +18,35 @@ import static by.mrj.common.domain.client.DataClient.DUMMY;
 public class InMemoryClientRegister implements ClientRegister {
 
     // todo: that model supports only 1 at time client connection.
-    private ConcurrentMap<String, DataClient> register = new ConcurrentHashMap<>();
+    private ConcurrentMap<String, Set<DataClient>> register = new ConcurrentHashMap<>();
     private final List<NewClientRegistrationListener> clientRegistrationListener;
-//    private final DataProvider dataProvider;
 
     @Override
     public void register(DataClient dataClient) {
         String clientId = dataClient.getId();
-        DataClient prev = register.put(clientId, dataClient);
 
-        dataClient.getStreamingChannel()
-                .getChannel()
-                .closeFuture()
+        Set<DataClient> registeredDCs = register.computeIfAbsent(clientId, k -> new HashSet<>());
+
+        if (registeredDCs.contains(dataClient)) {
+            log.debug("Same channel nothing to update");
+
+            return;
+        }
+
+        log.debug("New client registration [{}]", dataClient);
+
+        registeredDCs.add(dataClient);
+
+        dataClient.getStreamingChannel().getChannel().closeFuture()
                 .addListener(future -> {
-                    // todo: remove listener if DC was updated
                     log.info("Removing closed client from Register [{}]", clientId);
 
-                    register.remove(clientId);
+                    Set<DataClient> dataClients = register.get(clientId);
+                    dataClients.remove(dataClient);
                 });
 
-        if (prev == null) {
-            log.debug("New client registration [{}]", dataClient);
-
-            for (NewClientRegistrationListener registrationListener : clientRegistrationListener) {
-                registrationListener.handleNewRegistration(dataClient);
-            }
-        } else {
-            log.debug("Client registration refreshed [{}]", dataClient);
-
-            closeChannel(prev);
+        for (NewClientRegistrationListener registrationListener : clientRegistrationListener) {
+            registrationListener.handleNewRegistration(dataClient);
         }
     }
 
@@ -56,8 +57,34 @@ public class InMemoryClientRegister implements ClientRegister {
     }
 
     @Override
-    public DataClient findBy(String id) {
-        return register.getOrDefault(id.toUpperCase(), DUMMY);
+    public Set<DataClient> findBy(String id) {
+        return register.getOrDefault(id.toUpperCase(), new HashSet<>());
+    }
+
+    @Override
+    public DataClient takeBest(String id) {
+        Set<DataClient> dataClients = findBy(id);
+
+        if (dataClients.isEmpty()) {
+            return DataClient.DUMMY;
+        }
+
+        DataClient best = null;
+        for (DataClient dataClient : dataClients) {
+            if (best == null) {
+                best = dataClient;
+                continue;
+            }
+
+            // todo: change to function. Consider channel creation time.
+            // so far WS treated as the best connection option if exist
+            if (dataClient.getStreamingChannel().getConnectionInfo().getConnectionType() == ConnectionType.WS) {
+                best = dataClient;
+                break;
+            }
+        }
+
+        return best;
     }
 
     private void closeChannel(DataClient prev) {

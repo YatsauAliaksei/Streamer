@@ -55,9 +55,6 @@ public class LongPollingServerChannel implements ServerChannel {
         }
 
         ByteBuf message = ByteBufUtils.createPost(postData);
-
-        log.debug("Creating HttpRequest");
-
         HttpRequest request = createHttpRequest(message);
 
         log.debug("Sending [{}] objects", postData.size());

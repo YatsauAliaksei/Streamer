@@ -31,7 +31,7 @@ public class StreamerReadTest extends AbstractStreamerReadTest {
 
     @Override
     protected List<ConnectionInfo> connectionInfo() {
-        return IntStream.rangeClosed(1, 1)
+        return IntStream.rangeClosed(1, 3)
                 .boxed()
                 .map(i -> createConnectionInfo("login-READ-LP-" + i))
                 .collect(Collectors.toList());

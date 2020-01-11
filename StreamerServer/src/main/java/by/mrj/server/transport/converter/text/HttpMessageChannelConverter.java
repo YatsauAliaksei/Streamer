@@ -11,6 +11,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpVersion;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -38,5 +39,10 @@ public class HttpMessageChannelConverter implements MessageChannelConverter<Full
         HttpUtil.setKeepAlive(response, true);
 
         return response;
+    }
+
+    @Override
+    public String toString() {
+        return "HttpMessageChannelConverter";
     }
 }

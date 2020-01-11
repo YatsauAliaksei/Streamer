@@ -71,7 +71,7 @@ public class MessageLoggingConsumer implements MessageConsumer {
         int sizeForClient = msgsReceived.addAndGet(batchSize);
         int t = total.addAndGet(batchSize);
 
-        log.debug("Messages received {}/{} for {}. Total: {}, ReceivedLatency: {}, AvgLatency: {}", batchSize, sizeForClient, login, t, receivedLatency, avg);
+        log.info("Messages received {}/{}, ReceivedLatency: {}, AvgLatency: {} for {}. Total: {}", batchSize, sizeForClient, receivedLatency, avg, login, t);
     }
 
     @Override

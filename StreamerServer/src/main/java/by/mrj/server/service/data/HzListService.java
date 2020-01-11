@@ -1,4 +1,4 @@
-package by.mrj.server.service;
+package by.mrj.server.service.data;
 
 import com.hazelcast.core.HazelcastInstance;
 import lombok.RequiredArgsConstructor;

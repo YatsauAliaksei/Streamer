@@ -80,7 +80,7 @@ public class PostOperationService {
             int size = baseObjects.size();
             long finalSeq = seq.addAndGet(size);
 
-            log.debug("Seq add & get");
+            log.debug("Seq set & get");
 
             for (int i = 1; i <= baseObjects.size(); i++) {
                 long id = finalSeq - size + i;

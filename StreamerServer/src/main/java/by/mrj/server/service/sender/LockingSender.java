@@ -10,9 +10,8 @@ import by.mrj.server.data.HzConstants;
 import by.mrj.server.data.domain.DataToSend;
 import by.mrj.server.data.domain.SendStatus;
 import by.mrj.server.data.domain.Subscription;
-import by.mrj.server.service.ListService;
-import by.mrj.server.service.LockingService;
-import by.mrj.server.service.MapService;
+import by.mrj.server.service.data.ListService;
+import by.mrj.server.service.data.LockingService;
 import by.mrj.server.service.register.ClientRegister;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -81,7 +80,7 @@ public class LockingSender {
     }
 
     private boolean isWebSocketConnection(String clientId) {
-        DataClient dc = clientRegister.findBy(clientId);
+        DataClient dc = clientRegister.takeBest(clientId);
 
         ClientChannel streamingChannel = dc.getStreamingChannel();
         ConnectionInfo connectionInfo = streamingChannel.getConnectionInfo();
@@ -119,7 +118,7 @@ public class LockingSender {
     }
 
     private boolean shouldISend(String clientId) {
-        DataClient dataClient = clientRegister.findBy(clientId);
+        DataClient dataClient = clientRegister.takeBest(clientId);
 
         if (dataClient == DataClient.DUMMY) {
             log.info("No registered client [{}] found. Nothing will be sent", clientId);

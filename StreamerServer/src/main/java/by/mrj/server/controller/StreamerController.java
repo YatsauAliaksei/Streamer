@@ -53,7 +53,7 @@ public class StreamerController implements CommandListener {
                 break;
 
             case READ_SPECIFIC:
-                readOperationService.read(msgBody);
+//                readOperationService.read(msgBody);
                 break;
 
             case READ_ALL:

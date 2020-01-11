@@ -3,6 +3,8 @@ package by.mrj.server.service.register;
 
 import by.mrj.common.domain.client.DataClient;
 
+import java.util.Set;
+
 public interface ClientRegister {
 
     /**
@@ -13,5 +15,7 @@ public interface ClientRegister {
 
     void unregister(String clientId);
 
-    DataClient findBy(String id);
+    Set<DataClient> findBy(String id);
+
+    DataClient takeBest(String id);
 }

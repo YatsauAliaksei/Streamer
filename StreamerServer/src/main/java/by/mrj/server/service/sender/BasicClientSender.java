@@ -57,7 +57,7 @@ public class BasicClientSender {
             return new HashMap<>();
         }
 
-        DataClient dataClient = clientRegister.findBy(clientId);
+        DataClient dataClient = clientRegister.takeBest(clientId);
         ClientChannel streamingChannel = dataClient.getStreamingChannel();
 
         log.debug("Sending {} objects with limit {} to {}", objects.size(), limit, clientId);
@@ -74,7 +74,7 @@ public class BasicClientSender {
 
     public void send(String clientId, Object objToSend) {
 
-        DataClient dataClient = clientRegister.findBy(clientId);
+        DataClient dataClient = clientRegister.takeBest(clientId);
         if (dataClient == DataClient.DUMMY) {
             log.info("No client [{}] found", clientId);
             return;

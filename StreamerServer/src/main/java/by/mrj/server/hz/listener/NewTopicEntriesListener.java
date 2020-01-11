@@ -4,7 +4,7 @@ import by.mrj.common.domain.data.BaseObject;
 import by.mrj.server.data.DataProvider;
 import by.mrj.server.data.HazelcastDataProvider;
 import by.mrj.server.data.HzConstants;
-import by.mrj.server.service.MultiMapService;
+import by.mrj.server.service.data.MultiMapService;
 import com.google.common.collect.Sets;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.listener.EntryAddedListener;

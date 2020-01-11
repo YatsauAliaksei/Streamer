@@ -36,13 +36,8 @@ public class ByteBufUtils {
     public static ByteBuf createPost(List<BaseObject> postData) {
 
         ByteBuf msg = Unpooled.buffer();
-        log.debug("Unpooled buf created");
-
         msg.writeInt(Command.POST.ordinal());
-        log.debug("Post command added");
-
         msg.writeCharSequence(JsonJackson.toJson(postData), CharsetUtil.UTF_8);
-        log.debug("Post data written");
 
         return msg;
     }

@@ -1,4 +1,4 @@
-package by.mrj.server.service;
+package by.mrj.server.service.data;
 
 import java.util.Collection;
 

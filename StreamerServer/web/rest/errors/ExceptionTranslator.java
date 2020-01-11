@@ -39,7 +39,7 @@ public class ExceptionTranslator implements ProblemHandling {
     private String applicationName;
 
     /**
-     * Post-process the Problem payload to add the message key for the front-end if needed.
+     * Post-process the Problem payload to set the message key for the front-end if needed.
      */
     @Override
     public ResponseEntity<Problem> process(@Nullable ResponseEntity<Problem> entity, NativeWebRequest request) {

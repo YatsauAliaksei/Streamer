@@ -18,9 +18,9 @@ logging:
     ROOT: INFO
     io.github.jhipster: INFO
     io.netty: INFO
-    by.mrj: DEBUG
-    by.mrj.server.service.sender.LockingSender: DEBUG
-    by.mrj.server.job.RingBufferEventRegister: DEBUG
+    by.mrj: INFO
+    by.mrj.server.service.sender.LockingSender: INFO
+    by.mrj.server.job.RingBufferEventRegister: INFO
     com.netflix.concurrency.limits: DEBUG
 
 spring:

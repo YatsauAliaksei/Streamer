@@ -4,7 +4,7 @@ import by.mrj.server.data.DataProvider;
 import by.mrj.server.data.domain.Subscription;
 import by.mrj.server.data.event.PostDataEvent;
 import by.mrj.server.job.RingBufferEventRegister;
-import by.mrj.server.service.ListService;
+import by.mrj.server.service.data.ListService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationListener;

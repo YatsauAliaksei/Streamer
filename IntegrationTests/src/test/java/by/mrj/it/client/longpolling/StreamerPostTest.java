@@ -35,7 +35,7 @@ public class StreamerPostTest extends AbstractStreamerPostTest {
 
     @Override
     protected int timeout() {
-        return 1000;
+        return 100;
     }
 
     @Override

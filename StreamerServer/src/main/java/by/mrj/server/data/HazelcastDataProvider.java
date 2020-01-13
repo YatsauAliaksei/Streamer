@@ -77,33 +77,6 @@ public class HazelcastDataProvider implements DataProvider {
         }
 
         return data;
-
-/*        MultiMap<String, String> subToIds = hazelcastInstance.getMultiMap(HzConstants.Maps.SUBSCRIPTION_TO_IDS);
-//        log.info("Subs to ids: [{}]", subToIds.entrySet());
-        log.info("Subs to ids size: [{}]", subToIds.size());
-
-        if (subToIds.size() == 0) {
-            log.info("No data found");
-
-            return Collections.emptyList();
-        }
-
-        return subs.stream()
-                .flatMap(topicName -> {
-                    Collection<String> ids = subToIds.get(createSubsToIdsKey(clientId, topicName));
-                    Set<String> keys = ids.stream()
-                            .limit(maxSize == 0 ? Integer.MAX_VALUE : maxSize)
-                            .collect(Collectors.toSet());
-
-                    Collection<BaseObject> values = hazelcastInstance.<String, BaseObject>getMap(topicName)
-                            .getAll(keys)
-                            .values();
-
-                    log.info("Values loaded [{}]", values.size());
-
-                    return values.stream();
-                })
-                .collect(Collectors.toList());*/
     }
 
     @Override

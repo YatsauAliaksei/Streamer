@@ -37,7 +37,7 @@ public class MerkleTreeTest {
 
     @Test
     public void merkleTreeAddTest() {
-        int levels = 5;
+        int levels = 10;
         MerkleTree mt = createMerkleTree(1 << levels);
 
         int ls = mt.levelSize();
@@ -54,7 +54,7 @@ public class MerkleTreeTest {
             }
         }
 
-        for (long i = 1; i <= mt.size(); i++) {
+        for (int i = 0; i < mt.size(); i++) {
             hashes = hashSnapshot(levels, mt);
 
             mt.set(i, "hash" + i);
@@ -70,25 +70,25 @@ public class MerkleTreeTest {
         AtomicInteger incrementalId = new AtomicInteger();
 
         for (int i = 0; i < mt.size(); i++) {
-            List<Long> randomBatch = getRandomBatch(mt.size() / 4, mt.size());
+            List<Integer> randomBatch = getRandomBatch(mt.size() / 4, mt.size());
 
-            Map<Long, String> idToHash = randomBatch.stream()
+            Map<Integer, String> idToHash = randomBatch.stream()
                     .collect(Collectors.toMap(Function.identity(), k -> "hash" + incrementalId.incrementAndGet()));
 
             List<String> hashes = hashSnapshot(levels, mt);
 
-            mt.addAll(idToHash);
+            mt.setAll(idToHash);
 
             checkTreeAfterChange(levels, mt, hashes, randomBatch);
         }
     }
 
-    private List<Long> getRandomBatch(int batchSize, int maxId) {
-        List<Long> batchIds = new ArrayList<>(batchSize);
+    private List<Integer> getRandomBatch(int batchSize, int maxId) {
+        List<Integer> batchIds = new ArrayList<>(batchSize);
         Random random = new Random();
 
         while (batchIds.size() < batchSize) {
-            long i = random.nextInt(maxId + 1);
+            int i = random.nextInt(maxId);
             if (batchIds.contains(i) || i == 0) {
                 continue;
             }
@@ -110,7 +110,7 @@ public class MerkleTreeTest {
         return hashes;
     }
 
-    private void checkTreeAfterChange(int levels, MerkleTree mt, List<String> hashes, List<Long> ids) {
+    private void checkTreeAfterChange(int levels, MerkleTree mt, List<String> hashes, List<Integer> ids) {
         Set<MerkleTree.Node> parents = ids.stream()
                 .flatMap(id -> mt.parentsOf(id).stream())
                 .collect(Collectors.toSet());
@@ -126,7 +126,9 @@ public class MerkleTreeTest {
                 String before = hashes.get((int) (Math.pow(2, i) - 1) + n);
 
                 if (parents.contains(node)) {
-                    assertThat(after).withFailMessage("Level: %d  idx: %d", i, n).isNotEqualTo(before);
+                    assertThat(after)
+                            .withFailMessage("Level: %d  idx: %d", i, n)
+                            .isNotEqualTo(before);
                 } else {
                     assertThat(after).isEqualTo(before);
                 }
@@ -136,7 +138,7 @@ public class MerkleTreeTest {
     }
 
     private MerkleTree createMerkleTree(int maxSize) {
-        Map<Long, String> stubNodes = createStubNodes(maxSize / 2);
+        Map<Integer, String> stubNodes = createStubNodes(maxSize / 2);
         return new MerkleTree(stubNodes, maxSize);
     }
 }

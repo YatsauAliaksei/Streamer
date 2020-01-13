@@ -7,10 +7,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.LongStream;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -18,10 +18,10 @@ import static java.util.stream.Collectors.toMap;
  * Merkle tree implementation.
  */
 @Slf4j
-public class MerkleTree {
+public class MerkleTree implements Serializable {
 
     private Node root;
-    private Map<Long, Node> idToNodes;
+    private Map<Integer, Node> idToNodes;
     /**
      * Doesn't include final nodes
      */
@@ -32,15 +32,16 @@ public class MerkleTree {
      * @param maxSize  - power of 2
      */
     // todo: validate hash before. Consider TIGER/RIPEMD or any other
-    public MerkleTree(Map<Long, String> idToHash, int maxSize) {
+    public MerkleTree(Map<Integer, String> idToHash, int maxSize) {
         // todo: maybe just increase maxSize to nearest power of 2
         Preconditions.checkArgument(isPowerOfTwo(maxSize), "Max size should be power of 2");
 
         lvlToNodes = new HashMap<>((int) log2(maxSize));
 
         List<Node> nodes = new ArrayList<>(maxSize);
-        for (long i = 1; i <= maxSize; i++) {
-            String hash = idToHash.getOrDefault(i, UUID.randomUUID().toString());
+        for (int i = 0; i < maxSize; i++) {
+            // todo: think about UUID generation. We need something unique but randomUUID might be to slow
+            String hash = idToHash.getOrDefault(i, UUID.randomUUID().toString()).substring(0, 8);
             nodes.add(Node.of(i, hash));
         }
 
@@ -62,7 +63,7 @@ public class MerkleTree {
      * @param hash
      * @return
      */
-    public boolean set(Long id, String hash) {
+    public boolean set(Integer id, String hash) {
         Node node = setNode(id, hash);
 
         if (node == null)
@@ -72,7 +73,7 @@ public class MerkleTree {
         return true;
     }
 
-    private Node setNode(Long id, String hash) {
+    private Node setNode(Integer id, String hash) {
         Node node = idToNodes.get(id);
         if (node == null) { // maxSize < id
             log.info("About to recreate for id: {}, hash: {}", id, hash);
@@ -88,7 +89,7 @@ public class MerkleTree {
         return node;
     }
 
-    public void addAll(Map<Long, String> idToHash) {
+    public void setAll(Map<Integer, String> idToHash) {
         // todo: recreate operation not handled here
         List<Node> nodes = idToHash.entrySet().stream()
                 .map(e -> setNode(e.getKey(), e.getValue()))
@@ -179,13 +180,13 @@ public class MerkleTree {
      * Adding new level in case not enough space
      * Generally means full tree recreation
      */
-    private void recreate(Long id, String hash) {
+    private void recreate(Integer id, String hash) {
         // todo:
         throw new UnsupportedOperationException("Recreate invocation");
     }
 
     private String getCombinedHash(Node odd, Node even) {
-        return CryptoUtils.sha256(odd.hash + even.hash);
+        return CryptoUtils.sha256(odd.hash + even.hash).substring(0, 8);
     }
 
     private Node getSibling(Node node) {
@@ -201,7 +202,7 @@ public class MerkleTree {
         return root.hash;
     }
 
-    public List<Node> parentsOf(long id) {
+    public List<Node> parentsOf(int id) {
         Node node = idToNodes.get(id);
         if (node == null) {
             return Collections.emptyList();
@@ -247,9 +248,9 @@ public class MerkleTree {
     @ToString(exclude = {"parent", "left", "right"})
     @EqualsAndHashCode(of = {"id", "hash"})
     @RequiredArgsConstructor
-    public static class Node {
+    public static class Node implements Serializable {
 
-        public Node(Long id, String hash) {
+        public Node(Integer id, String hash) {
             this.id = id;
             this.hash = hash;
         }
@@ -257,10 +258,10 @@ public class MerkleTree {
         private Node parent;
         private Node left;
         private Node right;
-        private final Long id;
+        private final Integer id;
         private String hash;
 
-        public Long id() {
+        public Integer id() {
             return id;
         }
 
@@ -268,7 +269,7 @@ public class MerkleTree {
             return hash;
         }
 
-        private static Node of(Long id, String hash) {
+        private static Node of(Integer id, String hash) {
             return new Node(id, hash);
         }
     }

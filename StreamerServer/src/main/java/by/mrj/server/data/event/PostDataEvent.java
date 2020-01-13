@@ -9,9 +9,9 @@ import java.util.Map;
 public class PostDataEvent extends ApplicationEvent {
 
     @Getter
-    private final Map<String, List<Long>> topicToIds;
+    private final Map<String, List<Integer>> topicToIds;
 
-    public PostDataEvent(Object source, Map<String, List<Long>> topicToIds) {
+    public PostDataEvent(Object source, Map<String, List<Integer>> topicToIds) {
         super(source);
         this.topicToIds = topicToIds;
     }

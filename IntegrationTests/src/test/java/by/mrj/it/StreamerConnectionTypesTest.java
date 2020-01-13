@@ -168,7 +168,7 @@ public class StreamerConnectionTypesTest {
     public void webSocket_post() throws InterruptedException {
         ServerChannelHolder channel = getServerChannelHolder();
 
-        long k = 0;
+        int k = 0;
         while (true) {
             channel.send(Lists.newArrayList(
                     DataUtils.createNewData("First", k, BasicData.builder()

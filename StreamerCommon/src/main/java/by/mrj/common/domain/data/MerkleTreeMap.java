@@ -803,7 +803,7 @@ public class MerkleTreeMap<K, V extends Hashable> extends AbsMap<K, V>
      * which removes the corresponding mapping from the map, via the
      * {@code Iterator.remove}, {@code Set.remove},
      * {@code removeAll}, {@code retainAll}, and {@code clear}
-     * operations.  It does not support the {@code set} or {@code addAll}
+     * operations.  It does not support the {@code set} or {@code setAll}
      * operations.
      */
     public Set<K> keySet() {
@@ -844,7 +844,7 @@ public class MerkleTreeMap<K, V extends Hashable> extends AbsMap<K, V>
      * mapping from the map, via the {@code Iterator.remove},
      * {@code Collection.remove}, {@code removeAll},
      * {@code retainAll} and {@code clear} operations.  It does not
-     * support the {@code set} or {@code addAll} operations.
+     * support the {@code set} or {@code setAll} operations.
      */
     public Collection<V> values() {
         Collection<V> vs = values;
@@ -875,7 +875,7 @@ public class MerkleTreeMap<K, V extends Hashable> extends AbsMap<K, V>
      * mapping from the map, via the {@code Iterator.remove},
      * {@code Set.remove}, {@code removeAll}, {@code retainAll} and
      * {@code clear} operations.  It does not support the
-     * {@code set} or {@code addAll} operations.
+     * {@code set} or {@code setAll} operations.
      */
     public Set<Map.Entry<K, V>> entrySet() {
         EntrySet es = entrySet;
@@ -2553,7 +2553,7 @@ public class MerkleTreeMap<K, V extends Hashable> extends AbsMap<K, V>
     }
 
     /**
-     * Intended to be called only from TreeSet.addAll
+     * Intended to be called only from TreeSet.setAll
      */
     void addAllForTreeSet(SortedSet<? extends K> set, V defaultVal) {
         try {

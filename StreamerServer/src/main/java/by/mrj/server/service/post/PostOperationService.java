@@ -56,7 +56,7 @@ public class PostOperationService {
         Map<String, IAtomicLong> topicToSeq = topics.stream()
                 .collect(Collectors.toMap(String::toUpperCase, (t) -> dataProvider.getSequence(t + "_SEQ")));
 
-        Map<String, List<Long>> sentObjs = new HashMap<>();
+        Map<String, List<Integer>> sentObjs = new HashMap<>();
 
         for (Map.Entry<String, List<BaseObject>> entry : topicToData.entrySet()) {
 
@@ -82,16 +82,16 @@ public class PostOperationService {
 
             log.debug("Seq set & get");
 
-            for (int i = 1; i <= baseObjects.size(); i++) {
+            for (int i = 0; i < baseObjects.size(); i++) {
                 long id = finalSeq - size + i;
-                var bo = baseObjects.get(i - 1);
+                var bo = baseObjects.get(i);
 
-                bo.setId(id);
+                bo.setId((int) id);
             }
 
             dataProvider.putAll(topicName, baseObjects);
 
-            List<Long> ids = baseObjects.stream()
+            List<Integer> ids = baseObjects.stream()
                     .map(BaseObject::getId)
                     .collect(Collectors.toList());
 

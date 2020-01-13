@@ -121,6 +121,8 @@ streamer:
     url: localhost
     port: 9092
     client.Id: main
+  topic:
+    initSize: 65536 # should be power of 2
 
 
 management:

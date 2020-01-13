@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 public class DataUtils {
 
-    public static BaseObject createNewData(String topic, Long id, Object data) {
+    public static BaseObject createNewData(String topic, Integer id, Object data) {
 
         return BaseObject.builder()
                 .topic(topic)
@@ -23,7 +23,7 @@ public class DataUtils {
                 .build();
     }
 
-    public static Map<String, List<Long>> topicToIds(Collection<BaseObject> objects, Function<String, String> transformer) {
+    public static Map<String, List<Integer>> topicToIds(Collection<BaseObject> objects, Function<String, String> transformer) {
 
         return objects.stream()
                 .collect(Collectors.groupingBy(bo -> transformer.apply(bo.getTopic()),

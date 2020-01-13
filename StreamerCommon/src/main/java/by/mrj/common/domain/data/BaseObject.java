@@ -18,7 +18,7 @@ import java.io.Serializable;
 public class BaseObject implements Serializable, Hashable {
 
     @Setter
-    private Long id;
+    private Integer id;
     private String topic;
 //    private int version;
     private String hash; // for privacy guarantee should be signed
@@ -33,14 +33,14 @@ public class BaseObject implements Serializable, Hashable {
     }
 
     public static class BaseObjectBuilder {
-        private Long id;
+        private Integer id;
         private String topic;
 //        private int version;
         private String payload;
 
         BaseObjectBuilder() {}
 
-        public BaseObjectBuilder id(Long id) {
+        public BaseObjectBuilder id(Integer id) {
             this.id = id;
             return this;
         }
@@ -61,7 +61,7 @@ public class BaseObject implements Serializable, Hashable {
         }
 
         public BaseObject build() {
-            return new BaseObject(id, topic, CryptoUtils.sha256(payload), payload);
+            return new BaseObject(id, topic, CryptoUtils.sha256(payload).substring(6), payload);
 //            return new BaseObject(id, topic, version, CryptoUtils.sha256(payload), payload);
 //            return new BaseObject(id, topic, 0, null, payload);
         }

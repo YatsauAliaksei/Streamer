@@ -25,7 +25,7 @@ public class PostEventListener implements ApplicationListener<PostDataEvent> {
 
     @Override
     public void onApplicationEvent(PostDataEvent event) {
-        Map<String, List<Long>> topicToIds = event.getTopicToIds();
+        Map<String, List<Integer>> topicToIds = event.getTopicToIds();
 
         if (log.isDebugEnabled()) {
             log.debug("Creating subsToIds for topics [{}]", topicToIds.keySet());
@@ -34,11 +34,11 @@ public class PostEventListener implements ApplicationListener<PostDataEvent> {
         createSubsToIds(topicToIds);
     }
 
-    private void createSubsToIds(Map<String, List<Long>> topicToIds) {
+    private void createSubsToIds(Map<String, List<Integer>> topicToIds) {
 
-        for (Map.Entry<String, List<Long>> entry : topicToIds.entrySet()) {
+        for (Map.Entry<String, List<Integer>> entry : topicToIds.entrySet()) {
             String topicName = entry.getKey();
-            List<Long> values = entry.getValue();
+            List<Integer> values = entry.getValue();
 
             Set<String> clientIds = dataProvider.getAllClientsForSub(topicName);
 
